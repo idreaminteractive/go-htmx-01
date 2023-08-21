@@ -49,9 +49,6 @@ func main() {
 	check(err)
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		// ok - so now html?
-		// w.Write([]byte("welcome"))
-		// maybe
 		t.Execute(w, data)
 	})
 	http.ListenAndServe(":3000", r)
