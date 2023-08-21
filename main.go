@@ -1,15 +1,43 @@
+//go:generate go get -u github.com/valyala/quicktemplate/qtc
+//go:generate qtc -dir=views
+
 package main
 
 import (
 	"html/template"
 	"log"
+	todos "main/db"
+	"main/views"
 	"net/http"
+
+	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+	fmt.Printf("%s\n", views.Hello("Foo"))
+	fmt.Printf("%s\n", views.Hello("potato"))
+
+	ctx := context.Background()
+
+	db, err := sql.Open("sqlite3", "./foo.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	queries := todos.New(db)
+
+	todos, err := queries.ListTodos(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(todos)
+
 	r := chi.NewRouter()
 
 	const tpl = `

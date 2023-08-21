@@ -6,5 +6,13 @@
 
 tasks:
   - init: go get && go build ./...
+  - command: 
+      go install github.com/valyala/quicktemplate/qtc
+      go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 
+vscode:
+  extensions:
+    - qwtel.sqlite-viewer
+    - golang.go
+    - redhat.vscode-yaml
