@@ -3,7 +3,7 @@
 SELECT 'up SQL query';
 -- +goose StatementEnd
 create table if not exists todo (
-    id int primary key,
+    id integer primary key autoincrement,
     status boolean default false,
     description text not null
 );
