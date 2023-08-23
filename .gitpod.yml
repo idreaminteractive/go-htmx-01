@@ -6,5 +6,16 @@
 
 tasks:
   - init: go get && go build ./...
+  - command: |
+      go install github.com/valyala/quicktemplate/qtc
+      go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+      go install github.com/pressly/goose/v3/cmd/goose@latest
+      goose -dir migrations sqlite3 ./foo.db up
+      go run scripts/seed.go
 
 
+vscode:
+  extensions:
+    - qwtel.sqlite-viewer
+    - golang.go
+    - redhat.vscode-yaml
