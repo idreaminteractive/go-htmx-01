@@ -19,17 +19,12 @@ func check(err error) {
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
-	component := components.Hello("Dave")
-	// check(err)
-	// templ.Handler(component)
+	component := components.Layout("Dave")
 	component.Render(context.Background(), w)
 
 }
 
 func main() {
-	// fmt.Printf("%s\n", views.Hello("Foo"))
-	// fmt.Printf("%s\n", views.Hello("potato"))
-	// component := Hello("dave")
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", handleIndex)

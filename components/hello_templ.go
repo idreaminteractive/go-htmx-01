@@ -9,6 +9,8 @@ import "context"
 import "io"
 import "bytes"
 
+import "fmt"
+
 func Hello(name string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
@@ -39,6 +41,26 @@ func Hello(name string) templ.Component {
 		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
 			return err
+		}
+		for k := range [10]int{} {
+			_, err = templBuffer.WriteString("<div>")
+			if err != nil {
+				return err
+			}
+			var_4 := `dsafa `
+			_, err = templBuffer.WriteString(var_4)
+			if err != nil {
+				return err
+			}
+			var var_5 string = fmt.Sprint(k)
+			_, err = templBuffer.WriteString(templ.EscapeString(var_5))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
 		}
 		if !templIsBuffer {
 			_, err = io.Copy(w, templBuffer)
