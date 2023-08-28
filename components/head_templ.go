@@ -22,15 +22,7 @@ func Head() templ.Component {
 			var_1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, err = templBuffer.WriteString("<html><head></head><body>")
-		if err != nil {
-			return err
-		}
-		err = Layout().Render(ctx, templBuffer)
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</body></html>")
+		_, err = templBuffer.WriteString("<head></head>")
 		if err != nil {
 			return err
 		}

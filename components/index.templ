@@ -1,5 +1,8 @@
-package main
+package components
 
-templ indexTemplate(i IndexData) {
+import ("main/types")
+
+templ IndexTemplate(i types.IndexData) {
+	<div>{ i.Name }</div>
 }
 
