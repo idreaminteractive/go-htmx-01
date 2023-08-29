@@ -35,7 +35,35 @@ func IndexTemplate(i types.IndexData) templ.Component {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString("</div>")
+		_, err = templBuffer.WriteString("</div><div>")
+		if err != nil {
+			return err
+		}
+		var_3 := `Post List`
+		_, err = templBuffer.WriteString(var_3)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div><ul>")
+		if err != nil {
+			return err
+		}
+		for _, item := range i.Posts {
+			_, err = templBuffer.WriteString("<li>")
+			if err != nil {
+				return err
+			}
+			var var_4 string = item.Name
+			_, err = templBuffer.WriteString(templ.EscapeString(var_4))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</li>")
+			if err != nil {
+				return err
+			}
+		}
+		_, err = templBuffer.WriteString("</ul>")
 		if err != nil {
 			return err
 		}

@@ -4,5 +4,11 @@ import ("main/types")
 
 templ IndexTemplate(i types.IndexData) {
 	<div>{ i.Name }</div>
+	<div>Post List</div>
+	<ul>
+		for _, item := range i.Posts {
+			<li>{ item.Name }</li>
+		}
+	</ul>
 }
 

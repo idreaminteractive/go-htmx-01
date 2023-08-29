@@ -1,12 +1,13 @@
 package app
 
 import (
-	"github.com/a-h/templ"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"main/components"
 	"main/types"
 	"net/http"
+
+	"github.com/a-h/templ"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type IndexHandler struct {
@@ -26,12 +27,14 @@ func (ih IndexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Actual data object for index of the site
 func NewIndexHandler() IndexHandler {
-	// get our data
+	// get our data from our database here.
 	getIndex := func() (types.IndexData, error) {
 		return types.IndexData{
-
-			Name:  "Index",
-			Posts: make([]types.PostData, 0),
+			Name: "Index",
+			Posts: []types.PostData{
+				{Id: 1, Name: "Potatos", Content: "This is the post content"},
+				{Id: 2, Name: "Tomatoes", Content: "This is the post contentß"},
+			},
 		}, nil
 
 	}
