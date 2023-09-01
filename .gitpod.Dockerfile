@@ -13,4 +13,9 @@ RUN sudo mkdir /litefs
 RUN sudo chown -R gitpod /litefs
 
 
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/cosmtrek/air@latest
+
+
 RUN echo 'alias home="cd ${GITPOD_REPO_ROOT}"' | tee -a ~/.bashrc ~/.zshrc
