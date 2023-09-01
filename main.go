@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	todos "main/db"
 	"strconv"
@@ -30,6 +31,7 @@ func main() {
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
 		// probably locals
+		fmt.Println("Could not find PORT env, defaulting to 8080")
 		port = "8080"
 	}
 
@@ -45,6 +47,7 @@ func main() {
 	if err := start(port); err != nil {
 		log.Fatalln("Error:", err)
 	}
+	fmt.Println("Will be starting on " + port)
 
 }
 
