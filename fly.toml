@@ -9,6 +9,11 @@ primary_region = "yyz"
 [build]
   dockerfile = "Dockerfile"
 
+
+[mounts]
+source = "data1"
+destination = "/data/litefs"
+
 [env]
   PORT = "8080"
 
