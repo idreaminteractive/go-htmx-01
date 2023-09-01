@@ -7,11 +7,13 @@
 tasks:
   - init: go get && go build ./...
   - command: |
+      curl -L https://fly.io/install.sh | sh
+      export FLYCTL_INSTALL="/home/gitpod/.fly"
+      export PATH="$FLYCTL_INSTALL/bin:$PATH"
       go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
       go install github.com/pressly/goose/v3/cmd/goose@latest
-      go install github.com/a-h/templ/cmd/templ@latest
       go install github.com/cosmtrek/air@latest
-      goose -dir migrations sqlite3 ./foo.db up
+      goose -dir migrations sqlite3 /tmp/potato.db up
       go run scripts/seed.go
 
 

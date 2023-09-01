@@ -1,8 +1,15 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"log"
+	todos "main/db"
+	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
+
 	"net/http"
 	"time"
 
@@ -14,10 +21,23 @@ import (
 	ghttp "github.com/maragudk/gomponents/http"
 )
 
+var myTodos *todos.Queries
+
 func main() {
+
+	db, err := sql.Open("sqlite3", "/tmp/potato.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//
+
+	myTodos = todos.New(db)
+
 	if err := start(); err != nil {
 		log.Fatalln("Error:", err)
 	}
+
 }
 
 func start() error {
@@ -34,8 +54,8 @@ func start() error {
 		return page(now), nil
 	}))
 
-	log.Println("Starting on http://localhost:8080")
-	if err := http.ListenAndServe("localhost:8080", mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	log.Println("Starting on Port 8080")
+	if err := http.ListenAndServe(":8080", mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil
@@ -44,6 +64,11 @@ func start() error {
 const timeFormat = "15:04:05"
 
 func page(now time.Time) g.Node {
+	ctx := context.Background()
+	todoList, err := myTodos.ListTodos(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return c.HTML5(c.HTML5Props{
 		Title: now.Format(timeFormat),
 		Head: []g.Node{
@@ -59,6 +84,15 @@ func page(now time.Time) g.Node {
 				FormEl(Method("post"), Action("/"), hx.Boost("true"), hx.Target("#partial"), hx.Swap("outerHTML"),
 					Button(Type("submit"), g.Text(`Update time`),
 						Class("rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"),
+					),
+				),
+				Ul(
+					Div(
+						g.Group(
+							g.Map(todoList, func(todo todos.Todo) g.Node {
+								return Li(g.Text(strconv.FormatInt(todo.ID, 10) + ":" + todo.Description))
+							}),
+						),
 					),
 				),
 			),
