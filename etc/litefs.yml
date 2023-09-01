@@ -26,24 +26,24 @@ proxy:
 
 
 # to use static, change to:
-# lease:
-#     type: "static"
-#     candidate: true
+lease:
+    type: "static"
+    candidate: true
 
 # to use consul (ie: fly, change to:)
-lease:
-  type: 'consul'
-  candidate: ${FLY_REGION == 'yyz'}
-  promote: true
-  advertise-url: 'http://${FLY_ALLOC_ID}.vm.${FLY_APP_NAME}.internal:20202'
+# lease:
+#   type: 'consul'
+#   candidate: ${FLY_REGION == 'yyz'}
+#   promote: true
+#   advertise-url: 'http://${FLY_ALLOC_ID}.vm.${FLY_APP_NAME}.internal:20202'
 
-  consul:
-    url: '${FLY_CONSUL_URL}'
-    ttl: "10s"
-    key: "${FLY_APP_NAME}/primarykey"
+#   consul:
+#     url: '${FLY_CONSUL_URL}'
+#     ttl: "10s"
+#     key: "${FLY_APP_NAME}/primarykey"
 
 exec:
-  - cmd:  goose -dir migrations sqlite3 /litefs/poßtato.db up
+  - cmd: goose -dir /migrations sqlite /litefs/potato.db up
     if-candidate: true
 
   - cmd: go-htmlx

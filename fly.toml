@@ -21,10 +21,6 @@ primary_region = "yyz"
   processes = ["app"]
 
 
-
-[deploy]
-  release_command = "goose -dir migrations sqlite3 /litefs/potato.db up"
-
 [services.concurrency]
     type = "requests"
     hard_limit = 100000

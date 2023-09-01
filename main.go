@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"time"
 
+	"os"
+
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
 	hxhttp "github.com/maragudk/gomponents-htmx/http"
@@ -25,6 +27,12 @@ var myTodos *todos.Queries
 
 func main() {
 
+	var port string
+	if port = os.Getenv("PORT"); port == "" {
+		// probably locals
+		port = "8080"
+	}
+
 	db, err := sql.Open("sqlite3", "/litefs/potato.db")
 	if err != nil {
 		log.Fatal(err)
@@ -34,13 +42,13 @@ func main() {
 
 	myTodos = todos.New(db)
 
-	if err := start(); err != nil {
+	if err := start(port); err != nil {
 		log.Fatalln("Error:", err)
 	}
 
 }
 
-func start() error {
+func start(port string) error {
 	now := time.Now()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (g.Node, error) {
@@ -54,8 +62,8 @@ func start() error {
 		return page(now), nil
 	}))
 
-	log.Println("Starting on Port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	log.Println("Starting on Port " + port)
+	if err := http.ListenAndServe(":"+port, mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil
