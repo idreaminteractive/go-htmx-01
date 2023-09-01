@@ -1,2 +1,2 @@
 #!/bin/sh
-docker run --rm --device /dev/fuse --cap-add SYS_ADMIN latest
+docker run -p 8080:8080 --rm --device /dev/fuse --cap-add SYS_ADMIN latest

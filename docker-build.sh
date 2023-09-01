@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build -t latest .
+DOCKER_BUILDKIT=1 docker build -t latest .
