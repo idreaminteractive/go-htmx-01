@@ -23,8 +23,8 @@ RUN apk add bash fuse3 sqlite ca-certificates curl
 
 RUN mkdir -p /litefs/data
 
-ENV INTERNAL_PORT="8080"
-ENV PORT="8081"
+ENV GO_PORT="8081"
+ENV PORT="8080"
 
 EXPOSE 8080
 ENTRYPOINT litefs mount

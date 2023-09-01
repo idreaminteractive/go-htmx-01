@@ -29,9 +29,9 @@ var myTodos *todos.Queries
 func main() {
 
 	var port string
-	if port = os.Getenv("PORT"); port == "" {
+	if port = os.Getenv("GO_PORT"); port == "" {
 		// probably locals
-		fmt.Println("Could not find PORT env, defaulting to 8080")
+		fmt.Println("Could not find GO_PORT env, defaulting to 8080")
 		port = "8080"
 	}
 
