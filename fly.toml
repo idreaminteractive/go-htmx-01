@@ -11,7 +11,7 @@ primary_region = "yyz"
 
 
 [mounts]
-source = "data1"
+source = "data"
 destination = "/data/litefs"
 
 [env]

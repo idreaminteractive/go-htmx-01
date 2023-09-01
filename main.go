@@ -47,12 +47,12 @@ func main() {
 	if err := start(port); err != nil {
 		log.Fatalln("Error:", err)
 	}
-	fmt.Println("Will be starting on " + port)
 
 }
 
 func start(port string) error {
 	now := time.Now()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (g.Node, error) {
 		if r.Method == http.MethodPost && hxhttp.IsBoosted(r.Header) {
