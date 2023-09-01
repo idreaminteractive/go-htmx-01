@@ -1,28 +1,116 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 	"log"
-	"main/app"
-	"net/http"
+	todos "main/db"
+	"strconv"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/mattn/go-sqlite3"
+
+	"net/http"
+	"time"
+
+	"os"
+
+	g "github.com/maragudk/gomponents"
+	hx "github.com/maragudk/gomponents-htmx"
+	hxhttp "github.com/maragudk/gomponents-htmx/http"
+	c "github.com/maragudk/gomponents/components"
+	. "github.com/maragudk/gomponents/html"
+	ghttp "github.com/maragudk/gomponents/http"
 )
 
-func check(err error) {
+var myTodos *todos.Queries
+
+func main() {
+
+	var port string
+	if port = os.Getenv("GO_PORT"); port == "" {
+		// probably locals
+		fmt.Println("Could not find GO_PORT env, defaulting to 8080")
+		port = "8080"
+	}
+
+	db, err := sql.Open("sqlite3", "/litefs/potato.db")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//
+
+	myTodos = todos.New(db)
+
+	if err := start(port); err != nil {
+		log.Fatalln("Error:", err)
+	}
+	fmt.Println("Will be starting on " + port)
+
 }
 
-func main() {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.RequestID)
+func start(port string) error {
+	now := time.Now()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (g.Node, error) {
+		if r.Method == http.MethodPost && hxhttp.IsBoosted(r.Header) {
+			now = time.Now()
 
-	r.Get("/", app.NewIndexHandler().ServeHTTP)
+			hxhttp.SetPushURL(w.Header(), "/?time="+now.Format(timeFormat))
 
-	http.ListenAndServe(":3000", r)
+			return partial(now), nil
+		}
+		return page(now), nil
+	}))
 
+	log.Println("Starting on Port " + port)
+	if err := http.ListenAndServe(":"+port, mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
+}
+
+const timeFormat = "15:04:05"
+
+func page(now time.Time) g.Node {
+	ctx := context.Background()
+	todoList, err := myTodos.ListTodos(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return c.HTML5(c.HTML5Props{
+		Title: now.Format(timeFormat),
+		Head: []g.Node{
+			Script(Src("https://cdn.tailwindcss.com?plugins=forms,typography")),
+			Script(Src("https://unpkg.com/htmx.org")),
+		},
+		Body: []g.Node{
+			Div(Class("max-w-7xl mx-auto p-4 prose lg:prose-lg xl:prose-xl"),
+				Div(Class("text-lg"), g.Text("I am a new div")),
+				H1(g.Text(`gomponents + HTMX`)),
+				P(g.Textf(`Time at last full page refresh was %v.`, now.Format(timeFormat))),
+				partial(now),
+				FormEl(Method("post"), Action("/"), hx.Boost("true"), hx.Target("#partial"), hx.Swap("outerHTML"),
+					Button(Type("submit"), g.Text(`Update time`),
+						Class("rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"),
+					),
+				),
+				Ul(
+					Div(
+						g.Group(
+							g.Map(todoList, func(todo todos.Todo) g.Node {
+								return Li(g.Text(strconv.FormatInt(todo.ID, 10) + ":" + todo.Description))
+							}),
+						),
+					),
+				),
+			),
+		},
+	})
+}
+
+func partial(now time.Time) g.Node {
+	return P(ID("partial"), g.Textf(`Time was last updated at %v.`, now.Format(timeFormat)))
 }

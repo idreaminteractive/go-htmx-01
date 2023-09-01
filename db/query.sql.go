@@ -3,7 +3,7 @@
 //   sqlc v1.20.0
 // source: query.sql
 
-package todos
+package db
 
 import (
 	"context"
