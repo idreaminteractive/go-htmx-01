@@ -1,16 +1,18 @@
 # go-htmx-01
 
-- html templates - done
+## Todo 
 
-- back to go chi + proper structure for the templates
-- 
-- unocss 
-- vscode unocss
-- vscode html templates
-- other
+- run w/ doppler
+- back to go chi + proper routing structure
+- add chi logger + other necessary middleware
+- add todos
+- edit todos
+- unocss + lsp / formatters
 
 
-go get github.com/caarlos0/env/v9
+# Libraries to Look into
+
+- go get github.com/caarlos0/env/v9
 
 
 // about max concurrency
