@@ -25,7 +25,7 @@ var myTodos *todos.Queries
 
 func main() {
 
-	db, err := sql.Open("sqlite3", "/tmp/potato.db")
+	db, err := sql.Open("sqlite3", "/litefs/potato.db")
 	if err != nil {
 		log.Fatal(err)
 	}

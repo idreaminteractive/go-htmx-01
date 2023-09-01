@@ -7,8 +7,7 @@ app = "gohtmlx"
 primary_region = "yyz"
 
 [build]
-  builder = "paketobuildpacks/builder:base"
-  buildpacks = ["gcr.io/paketo-buildpacks/go"]
+  dockerfile = "Dockerfile"
 
 [env]
   PORT = "8080"
@@ -21,8 +20,10 @@ primary_region = "yyz"
   min_machines_running = 0
   processes = ["app"]
 
+
+
 [deploy]
-  release_command = "goose -dir migrations sqlite3 /tmp/potato up"
+  release_command = "goose -dir migrations sqlite3 /litefs/potato.db up"
 
 [services.concurrency]
     type = "requests"
