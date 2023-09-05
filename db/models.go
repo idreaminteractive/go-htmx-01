@@ -10,6 +10,12 @@ import (
 
 type Todo struct {
 	ID          int64
-	Status      sql.NullBool
 	Description string
+	UserID      sql.NullInt64
+}
+
+type User struct {
+	ID        int64
+	FirstName sql.NullString
+	LastName  sql.NullString
 }

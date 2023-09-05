@@ -15,13 +15,13 @@ INSERT INTO todo (
 ) VALUES (
   ?
 )
-RETURNING id, status, description
+RETURNING id, description, user_id
 `
 
 func (q *Queries) CreateTodo(ctx context.Context, description string) (Todo, error) {
 	row := q.db.QueryRowContext(ctx, createTodo, description)
 	var i Todo
-	err := row.Scan(&i.ID, &i.Status, &i.Description)
+	err := row.Scan(&i.ID, &i.Description, &i.UserID)
 	return i, err
 }
 
@@ -36,19 +36,19 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int64) error {
 }
 
 const getTodo = `-- name: GetTodo :one
-SELECT id, status, description FROM todo
+SELECT id, description, user_id FROM todo
 WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetTodo(ctx context.Context, id int64) (Todo, error) {
 	row := q.db.QueryRowContext(ctx, getTodo, id)
 	var i Todo
-	err := row.Scan(&i.ID, &i.Status, &i.Description)
+	err := row.Scan(&i.ID, &i.Description, &i.UserID)
 	return i, err
 }
 
 const listTodos = `-- name: ListTodos :many
-SELECT id, status, description FROM todo
+SELECT id, description, user_id FROM todo
 ORDER BY id
 `
 
@@ -61,7 +61,7 @@ func (q *Queries) ListTodos(ctx context.Context) ([]Todo, error) {
 	var items []Todo
 	for rows.Next() {
 		var i Todo
-		if err := rows.Scan(&i.ID, &i.Status, &i.Description); err != nil {
+		if err := rows.Scan(&i.ID, &i.Description, &i.UserID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
