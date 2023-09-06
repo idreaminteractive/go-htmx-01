@@ -54,3 +54,14 @@ func (db *DB) Open() (err error) {
 	}
 	return nil
 }
+
+func (db *DB) Close() error {
+	// Cancel background context.
+	db.cancel()
+
+	// Close database.
+	if db.db != nil {
+		return db.db.Close()
+	}
+	return nil
+}
