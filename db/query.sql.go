@@ -7,21 +7,46 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createTodo = `-- name: CreateTodo :one
 INSERT INTO todo (
-  description
+  description,
+  user_id
 ) VALUES (
-  ?
+  ?, ?
 )
 RETURNING id, description, user_id
 `
 
-func (q *Queries) CreateTodo(ctx context.Context, description string) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, createTodo, description)
+type CreateTodoParams struct {
+	Description string
+	UserID      sql.NullInt64
+}
+
+func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
+	row := q.db.QueryRowContext(ctx, createTodo, arg.Description, arg.UserID)
 	var i Todo
 	err := row.Scan(&i.ID, &i.Description, &i.UserID)
+	return i, err
+}
+
+const createUser = `-- name: CreateUser :one
+insert into user (
+  first_name, last_name
+) values (? , ?) returning id, first_name, last_name
+`
+
+type CreateUserParams struct {
+	FirstName sql.NullString
+	LastName  sql.NullString
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.FirstName, arg.LastName)
+	var i User
+	err := row.Scan(&i.ID, &i.FirstName, &i.LastName)
 	return i, err
 }
 

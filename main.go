@@ -9,12 +9,11 @@ import (
 	todos "main/db"
 	"strconv"
 
+	"github.com/caarlos0/env/v9"
 	_ "github.com/mattn/go-sqlite3"
 
 	"net/http"
 	"time"
-
-	"os"
 
 	g "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -26,25 +25,39 @@ import (
 
 var myTodos *todos.Queries
 
+type EnvConfig struct {
+	DatabaseFileName string `env:"DATABASE_FILENAME" envDefault:"/litefs/potato.db"`
+	GoPort           string `env:"GO_PORT" envDefault:"8080"`
+}
+
 func main() {
 
-	var port string
-	if port = os.Getenv("GO_PORT"); port == "" {
-		// probably locals
-		fmt.Println("Could not find GO_PORT env, defaulting to 8080")
-		port = "8080"
+	config := EnvConfig{}
+	if err := env.Parse(&config); err != nil {
+		fmt.Printf("%+v\n", err)
 	}
 
-	db, err := sql.Open("sqlite3", "/litefs/potato.db")
+	db, err := sql.Open("sqlite3", config.DatabaseFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	if _, err := db.Exec(`PRAGMA journal_mode = wal;`); err != nil {
+		log.Fatalf("enable wal: %w", err)
+	}
+
+	// Enable foreign key checks. For historical reasons, SQLite does not check
+	// foreign key constraints by default... which is kinda insane. There's some
+	// overhead on inserts to verify foreign key integrity but it's definitely
+	// worth it.
+	if _, err := db.Exec(`PRAGMA foreign_keys = ON;`); err != nil {
+		log.Fatalf("foreign keys pragma: %w", err)
+	}
 	//
 
 	myTodos = todos.New(db)
 
-	if err := start(port); err != nil {
+	if err := start(config.GoPort); err != nil {
 		log.Fatalln("Error:", err)
 	}
 

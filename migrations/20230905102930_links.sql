@@ -6,8 +6,6 @@
 -- disable foreign key constraint check
 PRAGMA foreign_keys=off;
 
--- start a transaction
--- BEGIN TRANSACTION;
 
 DROP TABLE if exists todo;
 
@@ -23,12 +21,11 @@ create table if not exists todo (
     id integer primary key autoincrement,
     description text not null,
     user_id integer,
-    FOREIGN KEY (user_id) 
-      REFERENCES user (id)
+    constraint "todo_user_fk_id" FOREIGN KEY (user_id) REFERENCES user (id) on delete restrict on update cascade
 );
 
-PRAGMA foreign_keys=on;
-
+PRAGMA foreign_key_check;
+PRAGMA foreign_keys=ON;
 
 -- +goose StatementEnd
 

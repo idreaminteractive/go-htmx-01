@@ -8,9 +8,10 @@ ORDER BY id;
 
 -- name: CreateTodo :one
 INSERT INTO todo (
-  description
+  description,
+  user_id
 ) VALUES (
-  ?
+  ?, ?
 )
 RETURNING *;
 
@@ -27,3 +28,9 @@ where id = ?;
 -- name: DeleteTodo :exec
 DELETE FROM todo
 WHERE id = ?;
+
+
+-- name: CreateUser :one
+insert into user (
+  first_name, last_name
+) values (? , ?) returning *;
