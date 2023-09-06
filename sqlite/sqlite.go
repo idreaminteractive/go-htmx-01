@@ -12,6 +12,8 @@ type DB struct {
 	ctx    context.Context // background context
 	cancel func()          // cancel background context
 
+	// Placeholder for queries from sqlc
+
 	// Datasource name.
 	DSN string
 
