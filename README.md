@@ -2,7 +2,7 @@
 
 ## Todo 
 
-- run w/ doppler
+- Setup proper structure for app startup from wtf project
 - back to go chi + proper routing structure
 - add chi logger + other necessary middleware
 - add todos
@@ -12,9 +12,6 @@
 
 # Libraries to Look into
 
-- go get github.com/caarlos0/env/v9
 
 
-// about max concurrency
-ab -n 1000 -c 35 
-
+- Load testing: `ab -n 1000 -c 35 https://url` 
