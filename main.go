@@ -59,6 +59,10 @@ func (m *Program) Close() error {
 
 func (m *Program) Run(ctx context.Context) error {
 	// todo - fill in the actual run program
+	fmt.Println("Listening on " + m.Config.GoPort)
+	if err := m.HTTPServer.Open(":" + m.Config.GoPort); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -42,11 +43,10 @@ func NewServer() *Server {
 	return s
 }
 
-func (s *Server) Open() (err error) {
-	if s.ln, err = net.Listen("tcp", s.Addr); err != nil {
+func (s *Server) Open(port string) (err error) {
+	if s.ln, err = net.Listen("tcp", port); err != nil {
 		return err
 	}
-
 	// Begin serving requests on the listener. We use Serve() instead of
 	// ListenAndServe() because it allows us to check for listen errors (such
 	// as trying to use an already open port) synchronously.
