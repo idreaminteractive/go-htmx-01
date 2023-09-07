@@ -59,6 +59,11 @@ func (m *Program) Close() error {
 
 func (m *Program) Run(ctx context.Context) error {
 	// todo - fill in the actual run program
+
+	// todo - initialize all the services backed by db
+
+	// todo - attach all services on m.HTTPServer
+
 	fmt.Println("Listening on " + m.Config.GoPort)
 	if err := m.HTTPServer.Open(":" + m.Config.GoPort); err != nil {
 		return err

@@ -2,10 +2,12 @@ package http
 
 import (
 	"context"
-	"fmt"
-	"net"
+	// "net"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
 const ShutdownTimeout = 1 * time.Second
@@ -14,9 +16,11 @@ const ShutdownTimeout = 1 * time.Second
 // used by the application so that dependent packages (such as cmd/wtfd) do not
 // need to reference the "net/http" package at all.
 type Server struct {
-	ln     net.Listener
 	server *http.Server
-	//	router *mux.Router
+	router *chi.Mux
+
+	Potato string
+	// router *mux.Router
 	//	sc     *securecookie.SecureCookie
 
 	// Bind address & domain for the server's listener.
@@ -38,20 +42,32 @@ type Server struct {
 
 func NewServer() *Server {
 
-	s := &Server{}
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+
+	s := &Server{
+		router: r,
+		server: &http.Server{},
+	}
+
+	s.Potato = "I am a potaot"
+
+	// handlers + routers
+	// all routers + sub routers come off of the server struct
+	// we can organize w/ files and simple extend the struct
+	// (https://github.com/benbjohnson/wtf/blob/main/http/dial.go#L210 for example)
+	r.Get("/", s.handleRoot)
 
 	return s
 }
 
-func (s *Server) Open(port string) (err error) {
-	if s.ln, err = net.Listen("tcp", port); err != nil {
-		return err
-	}
-	// Begin serving requests on the listener. We use Serve() instead of
-	// ListenAndServe() because it allows us to check for listen errors (such
-	// as trying to use an already open port) synchronously.
-	go s.server.Serve(s.ln)
+func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(s.Potato))
+}
 
+func (s *Server) Open(port string) (err error) {
+
+	http.ListenAndServe(port, s.router)
 	return nil
 }
 

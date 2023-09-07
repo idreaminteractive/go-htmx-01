@@ -3,11 +3,13 @@
 ## Todo 
 
 - Setup proper structure for app startup from wtf project
-- back to go chi + proper routing structure
-- add chi logger + other necessary middleware
+    - mostly there, need to move `main.go` into `cmd`
+- add other chi middleware
 - add todos
 - edit todos
-- unocss + lsp / formatters
+- css? tailwind, uno, sth else?
+- some htmx 
+- user login, etc
 
 
 # Libraries to Look into
