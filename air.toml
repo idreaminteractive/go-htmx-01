@@ -3,8 +3,9 @@ tmp_dir = "tmp"
 
 [build]
   bin = "/usr/bin/doppler run -- ./tmp/main"
-  cmd = "go build -o ./tmp/main ."
+  cmd = "go build -o ./tmp/main ./cmd/main.go"
   delay = 1000
+  kill_delay = 10
   exclude_dir = ["assets", "tmp", "vendor"]
   exclude_file = []
   exclude_regex = []
@@ -13,7 +14,6 @@ tmp_dir = "tmp"
   full_bin = ""
   include_dir = []
   include_ext = ["go", "html"]
-  kill_delay = "0s"
   log = "build-errors.log"
   send_interrupt = false
   stop_on_error = true

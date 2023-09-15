@@ -12,9 +12,6 @@ RUN (curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/insta
 RUN sudo mkdir /litefs
 RUN sudo chown -R gitpod /litefs
 
-
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 RUN go install github.com/cosmtrek/air@latest
 
 
