@@ -1,19 +1,13 @@
 # go-htmx-01
 
-## Todo 
+## What Are We Making?
 
-- Setup proper structure for app startup from wtf project
-    - mostly there, need to move `main.go` into `cmd`
-- add other chi middleware
-- add todos
-- edit todos
-- css? tailwind, uno, sth else?
-- some htmx 
-- user login, etc
+A fancy Todo app
 
+- User login w/ passwordless login
+- CSRF, sessions + cookies
+- CSS (tailwind or sth else?)
+- Form entry + validation
+- DB migrations, seeding + sqlc
+- Websocket w/ real time updates
 
-# Libraries to Look into
-
-
-
-- Load testing: `ab -n 1000 -c 35 https://url` 
