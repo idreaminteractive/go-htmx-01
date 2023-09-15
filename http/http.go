@@ -1,13 +1,17 @@
 package http
 
 import (
+	// "context"
 	"context"
+	"main/config"
+
 	// "net"
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi/v5"
+	"github.com/labstack/echo/v4"
+
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const ShutdownTimeout = 1 * time.Second
@@ -16,63 +20,51 @@ const ShutdownTimeout = 1 * time.Second
 // used by the application so that dependent packages (such as cmd/wtfd) do not
 // need to reference the "net/http" package at all.
 type Server struct {
-	server *http.Server
-	router *chi.Mux
-
-	Potato string
-	// router *mux.Router
-	//	sc     *securecookie.SecureCookie
-
-	// Bind address & domain for the server's listener.
-	// If domain is specified, server is run on TLS using acme/autocert.
-	Addr   string
-	Domain string
-
-	// Keys used for secure cookie encryption.
-	HashKey  string
-	BlockKey string
-
-	// Servics used by the various HTTP routes.
-	//	AuthService           wtf.AuthService
-	//	DialService           wtf.DialService
-	//	DialMembershipService wtf.DialMembershipService
-	//	EventService          wtf.EventService
-	//	UserService           wtf.UserService
+	echo   *echo.Echo
+	config *config.EnvConfig
 }
 
-func NewServer() *Server {
+func NewServer(config *config.EnvConfig) *Server {
+	// This is where we initialize all our services and attach to our
+	// server
 
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	e := echo.New()
 
 	s := &Server{
-		router: r,
-		server: &http.Server{},
+		echo:   e,
+		config: config,
 	}
+	e.Use(middleware.Logger())
+	e.Use(middleware.RequestID())
 
-	s.Potato = "I am a potaot"
+	e.Use(middleware.Recover())
 
-	// handlers + routers
-	// all routers + sub routers come off of the server struct
-	// we can organize w/ files and simple extend the struct
-	// (https://github.com/benbjohnson/wtf/blob/main/http/dial.go#L210 for example)
-	r.Get("/", s.handleRoot)
+	e.HEAD("/_health", s.healthCheckRoute)
+
+	e.GET("/_health", s.healthCheckRoute)
 
 	return s
 }
+func (s *Server) healthCheckRoute(c echo.Context) error {
 
-func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(s.Potato))
+	return c.String(http.StatusOK, "ok")
+
 }
 
 func (s *Server) Open(port string) (err error) {
 
-	http.ListenAndServe(port, s.router)
+	s.echo.Logger.Fatal(s.echo.Start(port))
+
 	return nil
+
 }
 
 func (s *Server) Close() error {
+
 	ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
+
 	defer cancel()
-	return s.server.Shutdown(ctx)
+
+	return s.echo.Shutdown(ctx)
+
 }

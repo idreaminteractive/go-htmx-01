@@ -3,23 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"main/config"
 	"main/http"
 	"main/sqlite"
 	"os"
 	"os/signal"
-
-	"github.com/caarlos0/env/v9"
 )
-
-type EnvConfig struct {
-	DatabaseFileName string `env:"DATABASE_FILENAME" envDefault:"/litefs/potato.db"`
-	GoPort           string `env:"GO_PORT" envDefault:"8080"`
-}
 
 // See the wtf project for reference
 type Program struct {
-	Config EnvConfig
-	DB     *sqlite.DB
+	DB *sqlite.DB
 
 	HTTPServer *http.Server
 	// anything else?
@@ -27,18 +20,12 @@ type Program struct {
 }
 
 func NewProgram() *Program {
-	config := EnvConfig{}
-	err := env.Parse(&config)
-	if err != nil {
-		panic("Could not parse env")
-	}
-
+	config := config.Parse()
 	return &Program{
-		Config: config,
 		// wrapper for our sqlite db functionality
 		DB: sqlite.NewDB(config.DatabaseFileName),
 		// wrapper for our http server w/ all the services
-		HTTPServer: http.NewServer(),
+		HTTPServer: http.NewServer(config),
 	}
 }
 
@@ -64,8 +51,7 @@ func (m *Program) Run(ctx context.Context) error {
 
 	// todo - attach all services on m.HTTPServer
 
-	fmt.Println("Listening on " + m.Config.GoPort)
-	if err := m.HTTPServer.Open(":" + m.Config.GoPort); err != nil {
+	if err := m.HTTPServer.Open(":8080"); err != nil {
 		return err
 	}
 	return nil
