@@ -1,5 +1,10 @@
 # go-htmx-01
 
+Things to look at:
+
+Task runner https://github.com/go-task/task
+Static analysis: https://staticcheck.dev/docs/getting-started/
+
 ## What Are We Making?
 
 A fancy Todo app
