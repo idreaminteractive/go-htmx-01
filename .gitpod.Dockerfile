@@ -11,8 +11,17 @@ RUN (curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/insta
 
 RUN sudo mkdir /litefs
 RUN sudo chown -R gitpod /litefs
-
+# install air
 RUN go install github.com/cosmtrek/air@latest
 
+# install static analysis (not sure if we need this?)
+RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+
+# install task
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+
+# install goose
+RUN  go install github.com/pressly/goose/v3/cmd/goose@latest
 
 RUN echo 'alias home="cd ${GITPOD_REPO_ROOT}"' | tee -a ~/.bashrc ~/.zshrc
+

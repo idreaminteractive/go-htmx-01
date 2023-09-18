@@ -1,0 +1,10 @@
+version: "3"
+
+tasks:
+  build:
+    cmds:
+      - echo "hello"
+
+  lint:
+    cmds:
+      - staticcheck cmd/main.go
