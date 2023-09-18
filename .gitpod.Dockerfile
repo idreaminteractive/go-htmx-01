@@ -23,5 +23,8 @@ RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local
 # install goose
 RUN  go install github.com/pressly/goose/v3/cmd/goose@latest
 
+# install sqlc
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
 RUN echo 'alias home="cd ${GITPOD_REPO_ROOT}"' | tee -a ~/.bashrc ~/.zshrc
 

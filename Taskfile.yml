@@ -1,9 +1,23 @@
 version: "3"
 
 tasks:
-  build:
+  dev:
     cmds:
-      - echo "hello"
+      - air -c air.toml
+
+  reset:
+    cmds:
+      - rm /litefs/potato.db
+      - goose -dir migrations sqlite3 /litefs/potato.db up
+      - task: seed
+
+  seed:
+    cmds:
+      - go run scripts/seed.go
+
+  sqlc:
+    cmds:
+      - sqlc generate
 
   lint:
     cmds:

@@ -32,5 +32,5 @@ WHERE id = ?;
 
 -- name: CreateUser :one
 insert into user (
-  first_name, last_name
-) values (? , ?) returning *;
+  first_name, last_name, password
+) values (? , ?, ?) returning *;
