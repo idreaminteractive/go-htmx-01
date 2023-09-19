@@ -1,6 +1,7 @@
 package http
 
 import (
+	"main/views/routes"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -32,7 +33,6 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 }
 
 func (s *Server) handleLoginGet(c echo.Context) error {
-
-	return c.String(http.StatusOK, "login")
+	return routes.LoginPage().Render(c.Response().Writer)
 
 }

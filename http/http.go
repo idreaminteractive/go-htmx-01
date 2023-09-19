@@ -40,6 +40,10 @@ func NewServer(config *config.EnvConfig) *Server {
 		echo:   e,
 		config: config,
 	}
+
+	// for now, this is fine - we'll set some monster caching later on
+	e.Static("/static", "static")
+	e.Use(middleware.Gzip())
 	e.Validator = &CustomValidator{validator: validator.New()}
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
