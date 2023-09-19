@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
-
 	"github.com/labstack/echo/v4/middleware"
 )
 
@@ -23,7 +23,13 @@ type Server struct {
 	echo   *echo.Echo
 	config *config.EnvConfig
 }
+type CustomValidator struct {
+	validator *validator.Validate
+}
 
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
+}
 func NewServer(config *config.EnvConfig) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
@@ -34,6 +40,7 @@ func NewServer(config *config.EnvConfig) *Server {
 		echo:   e,
 		config: config,
 	}
+	e.Validator = &CustomValidator{validator: validator.New()}
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 
