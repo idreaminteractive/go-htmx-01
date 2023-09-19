@@ -22,3 +22,7 @@ tasks:
   lint:
     cmds:
       - staticcheck cmd/main.go
+
+  migrate:
+    cmds:
+      - goose -dir migrations sqlite3 /litefs/potato.db up
