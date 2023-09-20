@@ -11,7 +11,6 @@ func BasePage(title string, children ...g.Node) g.Node {
 			Lang("en"),
 			Head(
 				TitleEl(g.Text(title)),
-				Link(Rel("stylesheet"), Href("/static/css/pico.min.css")),
 				Link(Rel("stylesheet"), Href("/static/css/custom.css")),
 			),
 			Body(children...),
