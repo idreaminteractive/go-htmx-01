@@ -1,8 +1,9 @@
 package http
 
 import (
-	"github.com/labstack/echo/v4"
 	"main/views/routes"
+
+	"github.com/labstack/echo/v4"
 )
 
 func (s *Server) registerHomeRoutes() {
@@ -11,7 +12,6 @@ func (s *Server) registerHomeRoutes() {
 }
 
 func (s *Server) handleHome(c echo.Context) error {
-	return routes.Home().Render(c.Response().Writer)
-	//return c.String(http.StatusOK, "Hello world!")
-	//
+	return routes.HomePage().Render(c.Response().Writer)
+
 }
