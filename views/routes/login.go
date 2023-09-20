@@ -1,20 +1,19 @@
 package routes
 
 import (
+	"main/views/components"
+
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	. "github.com/maragudk/gomponents/html"
 )
 
 func LoginPage() g.Node {
-	return c.HTML5(c.HTML5Props{
-		Title: "Login",
-		Head: []g.Node{
-			Link(Rel("stylesheet"), Href("/static/css/pico.min.css")),
-		},
-		Body: []g.Node{
+	return components.BasePage(
+		"Login",
+		Section(c.Classes{"container": true},
 			FormEl(
-				Div(c.Classes{"grid": true},
+				Div(c.Classes{"grid": true, "potato": true},
 					Label(
 						For("firstname"),
 						g.Text("First name"),
@@ -43,6 +42,6 @@ func LoginPage() g.Node {
 				Small(g.Text("We'll never share your email with anyone else.")),
 				Button(Type("submit"), g.Text("Submit")),
 			),
-		},
-	})
+		),
+	)
 }
