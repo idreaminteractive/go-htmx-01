@@ -11,9 +11,9 @@ import (
 func LoginPage() g.Node {
 	return components.BasePage(
 		"Login",
-		Section(c.Classes{"container": true},
+		components.Layout(Section(
 			FormEl(
-				Div(c.Classes{"grid": true, "potato": true},
+				Div(c.Classes{"grid": true},
 					Label(
 						For("firstname"),
 						g.Text("First name"),
@@ -42,6 +42,6 @@ func LoginPage() g.Node {
 				Small(g.Text("We'll never share your email with anyone else.")),
 				Button(Type("submit"), g.Text("Submit")),
 			),
-		),
+		)),
 	)
 }
