@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@latest
 # CMD ["sleep", "infinity"]
 # Our final Docker image stage starts here.
 FROM alpine
-COPY --from=flyio/litefs:0.5.4 /usr/local/bin/litefs /usr/local/bin/litefs
+COPY --from=flyio/litefs:0.5.7 /usr/local/bin/litefs /usr/local/bin/litefs
 # Copy binaries from the previous build stages.
 COPY --from=builder /usr/local/bin/go-htmlx /usr/local/bin/go-htmlx
 COPY --from=builder /go/bin/goose /usr/local/bin/goose

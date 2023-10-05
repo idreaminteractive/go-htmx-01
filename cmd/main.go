@@ -25,7 +25,7 @@ func NewProgram() *Program {
 	if config.DopplerConfig != "dev_local" {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
-	logrus.Info("bLogging Ready to Go")
+	logrus.Info("Logging Ready to Go")
 	return &Program{
 		// wrapper for our sqlite db functionality
 		DB: sqlite.NewDB(config.DatabaseFileName),

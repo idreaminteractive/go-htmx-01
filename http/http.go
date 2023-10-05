@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -54,8 +55,8 @@ func NewServer(config *config.EnvConfig) *Server {
 
 	e.GET("/_health", s.healthCheckRoute)
 
-	s.registerAuthRoutes()
-	s.registerHomeRoutes()
+	// s.registerAuthRoutes()
+	// s.registerHomeRoutes()
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {
