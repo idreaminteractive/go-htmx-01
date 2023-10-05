@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
   bin = "/usr/bin/doppler run -- ./tmp/main"
-  cmd = "templ generate && go build -o ./tmp/main ."
+  cmd = "templ generate && go build -o ./tmp/main ./cmd/main.go"
   delay = 1000
   kill_delay = 10
   exclude_dir = ["assets", "tmp", "vendor"]

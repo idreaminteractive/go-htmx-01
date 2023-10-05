@@ -9,7 +9,7 @@ import "context"
 import "io"
 import "bytes"
 
-func hello(name string) templ.Component {
+func Hello(name string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
@@ -32,6 +32,43 @@ func hello(name string) templ.Component {
 			return err
 		}
 		_, err = templBuffer.WriteString("</h1></header>")
+		if err != nil {
+			return err
+		}
+		err = potato().Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		if !templIsBuffer {
+			_, err = templBuffer.WriteTo(w)
+		}
+		return err
+	})
+}
+
+func potato() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+		templBuffer, templIsBuffer := w.(*bytes.Buffer)
+		if !templIsBuffer {
+			templBuffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templBuffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		var_3 := templ.GetChildren(ctx)
+		if var_3 == nil {
+			var_3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, err = templBuffer.WriteString("<div>")
+		if err != nil {
+			return err
+		}
+		var_4 := `I am poattoa`
+		_, err = templBuffer.WriteString(var_4)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
 			return err
 		}

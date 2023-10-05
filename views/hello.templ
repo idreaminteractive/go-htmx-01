@@ -1,8 +1,13 @@
 package views 
 
-templ hello(name string) {
+templ Hello(name string) {
 	<header data-testid="headerTemplate">
 		<h1>{ name }</h1>
 	</header>
+	@potato()
+}
+
+templ potato() {
+	<div>I am poattoa</div>
 }
 

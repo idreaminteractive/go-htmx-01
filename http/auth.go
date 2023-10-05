@@ -1,9 +1,11 @@
 package http
 
 import (
-	"main/views/routes"
+	// "github.com/a-h/templ"
+	"main/views"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -33,6 +35,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 }
 
 func (s *Server) handleLoginGet(c echo.Context) error {
-	return routes.LoginPage().Render(c.Response().Writer)
-
+	component := views.Hello("Dave")
+	templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
+	return nil
 }
