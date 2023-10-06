@@ -35,7 +35,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 }
 
 func (s *Server) handleLoginGet(c echo.Context) error {
-	component := views.Hello("Dave")
-	templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
+	component := views.Login()
+	base := views.Base(component)
+	templ.Handler(base).ServeHTTP(c.Response().Writer, c.Request())
 	return nil
 }

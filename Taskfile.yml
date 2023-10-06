@@ -3,7 +3,7 @@ version: "3"
 tasks:
   dev:
     cmds:
-      - air -c air.toml
+      - air 
 
   reset:
     cmds:

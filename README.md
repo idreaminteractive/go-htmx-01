@@ -2,8 +2,7 @@
 
 Things to look at:
 
-Task runner https://github.com/go-task/task
-Static analysis: https://staticcheck.dev/docs/getting-started/
+TailwindCSS setup without installing npm 
 
 ## What Are We Making?
 
