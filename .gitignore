@@ -25,3 +25,5 @@ foo.db
 tmp
 
 *_templ.go
+
+node_modules

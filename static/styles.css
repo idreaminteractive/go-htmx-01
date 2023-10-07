@@ -1,9 +1,13 @@
 .potato {
     color: red;
     background-color: aliceblue;
-    .green {
+}
+    .potato .green {
         color: red
     }
+
+:-webkit-full-screen {
+    margin: auto 0;
 }
 
 :fullscreen {

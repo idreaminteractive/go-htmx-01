@@ -9,6 +9,10 @@ tasks:
     cmds:
       - air
 
+  assets:
+    cmds:
+      - npx postcss styles/input.css -o static/styles.css -m -w
+
   reset:
     cmds:
       - rm /litefs/potato.db
