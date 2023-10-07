@@ -14,6 +14,6 @@ tasks:
 
 vscode:
   extensions:
-    - qwtel.sqlite-viewer
     - golang.go
     - redhat.vscode-yaml
+    - a-h.templ
