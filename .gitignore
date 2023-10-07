@@ -23,3 +23,5 @@ go.work
 foo.db
 
 tmp
+
+*_templ.go

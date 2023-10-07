@@ -2,7 +2,8 @@
 
 Things to look at:
 
-TailwindCSS setup without installing npm 
+- Sass -> postcss without npm
+
 
 ## What Are We Making?
 

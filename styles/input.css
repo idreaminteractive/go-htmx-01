@@ -1,4 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities
+.potato {
+    color: red;
+}
 
+:fullscreen {
+    margin: auto 0;
+}

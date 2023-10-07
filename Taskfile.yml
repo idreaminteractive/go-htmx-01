@@ -5,6 +5,10 @@ tasks:
     cmds:
       - air 
 
+  build: 
+    cmds:
+      - air
+
   reset:
     cmds:
       - rm /litefs/potato.db
