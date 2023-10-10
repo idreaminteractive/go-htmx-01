@@ -27,3 +27,9 @@ tmp
 *_templ.go
 
 node_modules
+
+# css things
+styles/**/*.css*
+
+# built css
+static/**/*.css*

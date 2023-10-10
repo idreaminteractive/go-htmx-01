@@ -10,10 +10,8 @@ tasks:
       go run scripts/seed.go
       curl -sLO https://github.com/sass/dart-sass/releases/download/1.69.0/dart-sass-1.69.0-linux-x64.tar.gz
       tar -zxvf dart-sass-1.69.0-linux-x64.tar.gz
-      sudo cp -R dart-sass/ /usr/local/bin
+      sudo cp -R dart-sass/* /usr/local/bin
       rm -rf dart-sass*
-      
-      
 
 vscode:
   extensions:

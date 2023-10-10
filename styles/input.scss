@@ -1,0 +1,19 @@
+@use 'potato/code';
+
+.potato {
+    background: #000;
+
+    .iamiinthis {
+        color: red;
+    }
+
+    &:hover {
+        font-weight: bold;
+    }
+}
+
+
+
+.greay {
+    background-color: antiquewhite;
+}

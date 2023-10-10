@@ -2,16 +2,26 @@ version: "3"
 
 tasks:
   dev:
-    cmds:
-      - air 
+    deps: [assets, air]
 
-  build: 
+  air:
+    cmds:
+      - air
+
+  build:
     cmds:
       - air
 
   assets:
+    deps: [sass, postcss]
+
+  sass:
     cmds:
-      - npx postcss styles/input.css -o static/styles.css -m -w
+      - sass -w styles/input.scss styles/output.css
+
+  postcss:
+    cmds:
+      - npx postcss styles/output.css -o static/styles.css -m -w
 
   reset:
     cmds:
