@@ -55,7 +55,7 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.GET("/_health", s.healthCheckRoute)
 
 	s.registerAuthRoutes()
-	// s.registerHomeRoutes()
+	s.registerRootRoutes()
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {

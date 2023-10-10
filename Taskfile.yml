@@ -15,11 +15,11 @@ tasks:
 
   sass:
     cmds:
-      - sass -w styles/input.scss styles/output.css
+      - sass -w styles/input.scss tempcss/output.css
 
   postcss:
     cmds:
-      - npx postcss styles/output.css -o static/styles.css -m -w
+      - npx postcss tempcss/output.css -o static/styles.css -m -w
 
   # reset local
   reset:

@@ -33,3 +33,6 @@ styles/**/*.css*
 
 # built css
 static/**/*.css*
+
+# temp css
+tempcss
