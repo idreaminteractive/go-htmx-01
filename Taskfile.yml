@@ -4,14 +4,12 @@ tasks:
   dev:
     deps: [assets, air]
 
+  # hot reload
   air:
     cmds:
       - air
 
-  build:
-    cmds:
-      - air
-
+  # css + other assets
   assets:
     deps: [sass, postcss]
 
@@ -23,6 +21,7 @@ tasks:
     cmds:
       - npx postcss styles/output.css -o static/styles.css -m -w
 
+  # reset local
   reset:
     cmds:
       - rm /litefs/potato.db
