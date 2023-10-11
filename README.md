@@ -29,4 +29,4 @@ A fancy Todo app
 - Form entry + validation
 - DB migrations, seeding + sqlc
 - Websocket w/ real time updates
-
+https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
