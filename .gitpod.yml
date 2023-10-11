@@ -8,13 +8,13 @@ tasks:
   - command: |
       goose -dir migrations sqlite3 /litefs/potato.db up
       go run scripts/seed.go
-      curl -sLO https://github.com/sass/dart-sass/releases/download/1.69.0/dart-sass-1.69.0-linux-x64.tar.gz
-      tar -zxvf dart-sass-1.69.0-linux-x64.tar.gz
-      sudo cp -R dart-sass/* /usr/local/bin
-      rm -rf dart-sass*
+      curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.3.3/tailwindcss-linux-x64
+      chmod +x tailwindcss-linux-x64
+      sudo mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
 vscode:
   extensions:
     - golang.go
     - redhat.vscode-yaml
     - a-h.templ
+    - bradlc.vscode-tailwindcss

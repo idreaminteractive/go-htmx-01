@@ -2,17 +2,26 @@ version: "3"
 
 tasks:
   dev:
-    deps: [assets, air]
+    deps: [css, air]
 
   # hot reload
   air:
     cmds:
       - air
 
+  buildcss:
+    cmds:
+      - tailwindcss -i ./styles/input.css -o ./static/styles.css --minify
+
+  css:
+    cmds:
+      - tailwindcss -i ./styles/input.css -o ./static/styles.css --watch
+
   # css + other assets
   assets:
-    deps: [sass, postcss]
+    deps: [css]
 
+  # these are old ones here, using scss and things
   sass:
     cmds:
       - sass -w styles/input.scss tempcss/output.css
