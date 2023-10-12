@@ -28,8 +28,6 @@ tmp
 
 node_modules
 
-# css things
-styles/**/*.css*
 
 # built css
 static/**/*.css*
