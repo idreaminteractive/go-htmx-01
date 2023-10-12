@@ -30,3 +30,39 @@ A fancy Todo app
 - DB migrations, seeding + sqlc
 - Websocket w/ real time updates
 https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
+
+## What Stack and Services are we using?
+
+A very opinionated stack we can reuse over and over.
+
+## Stack
+
+### Confirmed:
+
+- Go
+- TailwindCSS
+- Templ
+- htmx
+- Air 
+- SQLC
+- github.com/caarlos0/env/v9
+- Echo Webserver
+- Goose
+- SQLite + LiteFS
+
+### Testing:
+
+- ...
+
+## Services:
+
+### Confirmed:
+- Fly.io
+- Doppler
+- Gitpod
+
+
+### Testing:
+
+- Honeycomb.io
+- Bunny.net CDN
