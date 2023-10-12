@@ -1,7 +1,7 @@
 package http
 
 import (
-	"main/views"
+	"main/internal/views"
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"

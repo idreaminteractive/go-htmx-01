@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"main/config"
-	"main/http"
-	"main/sqlite"
+	"main/internal/config"
+	"main/internal/http"
+	"main/internal/sqlite"
 	"os"
 	"os/signal"
+
+	"github.com/sirupsen/logrus"
 )
 
 // See the wtf project for reference

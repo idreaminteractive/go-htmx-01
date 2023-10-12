@@ -2,7 +2,7 @@ package http
 
 import (
 	// "github.com/a-h/templ"
-	"main/views"
+	"main/internal/views"
 	"net/http"
 
 	"github.com/a-h/templ"

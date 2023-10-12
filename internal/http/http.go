@@ -3,7 +3,7 @@ package http
 import (
 	// "context"
 	"context"
-	"main/config"
+	"main/internal/config"
 
 	// "net"
 	"net/http"
