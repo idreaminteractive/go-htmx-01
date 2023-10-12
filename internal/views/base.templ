@@ -1,15 +1,16 @@
 package views
 
-templ Base(component templ.Component) {
+templ Base(body templ.Component) {
 	<!DOCTYPE html>
-	<html>
+	<html data-theme="corporate">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<link href="/static/styles.css" rel="stylesheet"/>
+			<link href="/static/css/styles.css" rel="stylesheet"/>
+			<script type="text/javascript" src="/static/js/htmx.min.js"></script>
 		</head>
 		<body>
-			{! component }
+			{! body }
 		</body>
 	</html>
 }

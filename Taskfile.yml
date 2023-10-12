@@ -11,11 +11,11 @@ tasks:
 
   buildcss:
     cmds:
-      - tailwindcss -i ./styles/input.css -o ./static/styles.css --minify
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
 
   css:
     cmds:
-      - tailwindcss -i ./styles/input.css -o ./static/styles.css --watch
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --watch
 
   # css + other assets
   assets:
