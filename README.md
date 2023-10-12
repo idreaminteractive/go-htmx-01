@@ -1,9 +1,5 @@
 # go-htmx-01
 
-Things to look at:
-
-- Sass -> postcss without npm
-
 
 ## What Are We Making?
 
