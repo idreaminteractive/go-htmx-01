@@ -31,6 +31,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 		// we can use this info to build out custom error messages
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+	// ok - it worked. so... what now?
+
 	return c.String(http.StatusOK, "Post complete")
 }
 
