@@ -3,8 +3,8 @@ image:
 
 tasks:
   - init: |
-
       go get && go build ./...
+      npm i
   - command: |
       goose -dir migrations sqlite3 /litefs/potato.db up
       go run scripts/seed.go

@@ -1,27 +1,27 @@
 package http
 
 import (
-	// "context"
 	"context"
 	"main/internal/config"
+	"main/internal/services"
 
-	// "net"
 	"net/http"
 	"time"
 
 	"github.com/go-playground/validator"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/gorilla/sessions"
 )
 
 const ShutdownTimeout = 1 * time.Second
 
-// Server represents an HTTP server. It is meant to wrap all HTTP functionality
-// used by the application so that dependent packages (such as cmd/wtfd) do not
-// need to reference the "net/http" package at all.
 type Server struct {
-	echo   *echo.Echo
-	config *config.EnvConfig
+	echo           *echo.Echo
+	config         *config.EnvConfig
+	sessionService services.ISessionService
 }
 type CustomValidator struct {
 	validator *validator.Validate
@@ -35,10 +35,14 @@ func NewServer(config *config.EnvConfig) *Server {
 	// server
 
 	e := echo.New()
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
+	ss := services.SessionService{CookieName: "_session", MaxAge: 3600}
 
+	// initialize the rest of our services
 	s := &Server{
-		echo:   e,
-		config: config,
+		echo:           e,
+		sessionService: &ss,
+		config:         config,
 	}
 
 	// for now, this is fine - we'll set some monster caching later on
@@ -55,7 +59,8 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.GET("/_health", s.healthCheckRoute)
 
 	s.registerAuthRoutes()
-	s.registerRootRoutes()
+	s.registerPublicRoutes()
+	s.registerLoggedInRoutes()
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {

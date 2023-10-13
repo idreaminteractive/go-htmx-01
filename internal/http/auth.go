@@ -22,13 +22,16 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	}
 	logrus.WithField("user", user).Info("User")
 	if err = c.Validate(user); err != nil {
-		// should be an htmx post and we deal with that
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		// login failed, so let's send back bad request
+		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		// return the view with our error
+		templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
+		return nil
 	}
-	// ok - it worked. so... what now?
-	component := views.LoginForm(user, views.UserLoginFormErrors{"Invalid login, please try again"})
-	templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
-	return nil
+	logrus.Info("Success?")
+	// create our session + stuff
+	c.Response().Header().Set("HX-Redirect", "/dashboard")
+	return c.NoContent(200)
 }
 
 func (s *Server) handleLoginGet(c echo.Context) error {

@@ -8,9 +8,6 @@ templ LoginPage(previousEntry UserLoginDTO, errors UserLoginFormErrors) {
 				<h1 class="text-3xl font-bold">
 					Login
 				</h1>
-				if errors.Message != "" {
-					<span>ERROR ON LOGIN</span>
-				}
 			</div>
 			@LoginForm(previousEntry, errors)
 		</div>

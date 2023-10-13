@@ -8,7 +8,7 @@ type EnvConfig struct {
 	DatabaseFileName string `env:"DATABASE_FILENAME" envDefault:"/litefs/potato.db"`
 	GoPort           string `env:"GO_PORT" envDefault:"8079"`
 	DopplerConfig    string `env:"DOPPLER_CONFIG"`
-	SecretSauce      string `env:"SECRET_SAUCE"`
+	SessionSecret    string `env:"SESSION_SECRET"`
 }
 
 func Parse() *EnvConfig {

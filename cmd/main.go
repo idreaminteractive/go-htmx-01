@@ -17,8 +17,6 @@ type Program struct {
 	DB *sqlite.DB
 
 	HTTPServer *http.Server
-	// anything else?
-
 }
 
 func NewProgram() *Program {
