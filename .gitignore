@@ -23,3 +23,14 @@ go.work
 foo.db
 
 tmp
+
+*_templ.go
+
+node_modules
+
+
+# built css
+static/**/*.css*
+
+# temp css
+tempcss

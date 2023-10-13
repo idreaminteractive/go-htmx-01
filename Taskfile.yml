@@ -2,9 +2,35 @@ version: "3"
 
 tasks:
   dev:
-    cmds:
-      - air -c air.toml
+    deps: [css, air]
 
+  # hot reload
+  air:
+    cmds:
+      - air
+
+  buildcss:
+    cmds:
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
+
+  css:
+    cmds:
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --watch
+
+  # css + other assets
+  assets:
+    deps: [css]
+
+  # these are old ones here, using scss and things
+  sass:
+    cmds:
+      - sass -w styles/input.scss tempcss/output.css
+
+  postcss:
+    cmds:
+      - npx postcss tempcss/output.css -o static/styles.css -m -w
+
+  # reset local
   reset:
     cmds:
       - rm /litefs/potato.db

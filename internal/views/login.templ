@@ -1,0 +1,59 @@
+package views
+
+
+templ LoginPage(previousEntry UserLoginDTO, errors UserLoginFormErrors) {
+	<div class=" min-h-screen flex items-center justify-center">
+		<div class="max-w-sm rounded-lg shadow-lg  p-6 space-y-6 border border-gray-200 dark:border-gray-700">
+			<div class="space-y-2 text-center">
+				<h1 class="text-3xl font-bold">
+					Login
+				</h1>
+			</div>
+			@LoginForm(previousEntry, errors)
+		</div>
+	</div>
+}
+
+
+
+templ LoginForm (previousEntry UserLoginDTO, errors UserLoginFormErrors) {
+	
+	<form hx-post="/login" class="group">
+		<div class="space-y-4">
+			<div class="space-y-2">
+				<div class="form-control w-full max-w-xs">
+					<label class="label" for="email">
+						<span class="label-text">Email</span>
+					</label>
+					<input name="email" type="email" id="email" value={previousEntry.Email} placeholder="m@example.com" required 
+						class="input input-bordered w-full max-w-xs"  />	
+					if errors.Message != "" {
+						<label class="label">
+							<span class="label-text-alt text-error">{errors.Message}</span>
+						</label>
+					}
+					
+				</div>
+				<div class="form-control w-full max-w-xs">
+				<label class="label" for="password">
+					<span class="label-text">
+						Password
+					</span>
+				</label>
+				<input name="password" id="password" required placeholder="Password" type="password" 
+					class="input input-bordered w-full max-w-xs peer "/>
+				<span class="mt-2 hidden text-sm text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+					Password is required
+				</span>
+				</div>
+			</div>
+
+			<button type="submit" class="btn btn-primary w-full px-32 group-invalid:pointer-events-none group-invalid:opacity-30">
+				<div class="flex items-center justify-center">
+					Login
+				</div>
+			</button>
+		</div>
+	</form>
+}
+

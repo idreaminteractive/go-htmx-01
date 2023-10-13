@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"main/config"
-	"main/http"
-	"main/sqlite"
+	"main/internal/config"
+	"main/internal/http"
+	"main/internal/sqlite"
 	"os"
 	"os/signal"
+
+	"github.com/sirupsen/logrus"
 )
 
 // See the wtf project for reference
@@ -16,8 +17,6 @@ type Program struct {
 	DB *sqlite.DB
 
 	HTTPServer *http.Server
-	// anything else?
-
 }
 
 func NewProgram() *Program {
@@ -25,7 +24,7 @@ func NewProgram() *Program {
 	if config.DopplerConfig != "dev_local" {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
-	logrus.Info("bLogging Ready to Go")
+	logrus.Info("Logging Ready to Go")
 	return &Program{
 		// wrapper for our sqlite db functionality
 		DB: sqlite.NewDB(config.DatabaseFileName),

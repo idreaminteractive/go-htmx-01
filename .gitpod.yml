@@ -3,14 +3,18 @@ image:
 
 tasks:
   - init: |
-
       go get && go build ./...
+      npm i
   - command: |
       goose -dir migrations sqlite3 /litefs/potato.db up
       go run scripts/seed.go
+      curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.3.3/tailwindcss-linux-x64
+      chmod +x tailwindcss-linux-x64
+      sudo mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
 vscode:
   extensions:
-    - qwtel.sqlite-viewer
     - golang.go
     - redhat.vscode-yaml
+    - a-h.templ
+    - bradlc.vscode-tailwindcss

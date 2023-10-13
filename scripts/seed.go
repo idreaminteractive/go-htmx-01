@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	todos "main/db"
+	todos "main/internal/db"
 
 	"github.com/go-faker/faker/v4"
 	_ "github.com/mattn/go-sqlite3"

@@ -1,13 +1,10 @@
 # go-htmx-01
 
-Things to look at:
-
-Task runner https://github.com/go-task/task
-Static analysis: https://staticcheck.dev/docs/getting-started/
 
 ## What Are We Making?
 
 A fancy Todo app
+
 
 - User login w/ passwordless login
   - Table + SQL setup
@@ -29,4 +26,40 @@ A fancy Todo app
 - Form entry + validation
 - DB migrations, seeding + sqlc
 - Websocket w/ real time updates
+https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
 
+## What Stack and Services are we using?
+
+A very opinionated stack we can reuse over and over.
+
+## Stack
+
+### Confirmed:
+
+- Go
+- TailwindCSS
+- Templ
+- htmx
+- Air 
+- SQLC
+- github.com/caarlos0/env/v9
+- Echo Webserver
+- Goose
+- SQLite + LiteFS
+
+### Testing:
+
+- ...
+
+## Services:
+
+### Confirmed:
+- Fly.io
+- Doppler
+- Gitpod
+
+
+### Testing:
+
+- Honeycomb.io
+- Bunny.net CDN
