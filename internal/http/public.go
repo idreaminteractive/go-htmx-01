@@ -11,16 +11,24 @@ import (
 
 func (s *Server) registerPublicRoutes() {
 	s.echo.GET("/", s.handleHomeGet)
-	s.echo.GET("/login", s.handleLoginGet)
-	s.echo.POST("/login", s.handleLoginPost)
+	s.echo.GET("/login/", s.handleLoginGet)
+	s.echo.POST("/login/", s.handleLoginPost)
+
+	s.echo.GET("/logout/", s.handleLogout)
+}
+
+func (s *Server) handleLogout(c echo.Context) error {
+	// kill session + redirect (i should not need to post anywhere)
+	// write a blank session
+	s.sessionService.WriteSession(c, services.SessionPayload{})
+	return c.Redirect(http.StatusMovedPermanently, "/")
 }
 
 // will be the main page of the system
 // let's mirror our current live version that pulls in the stuff
 func (s *Server) handleHomeGet(c echo.Context) error {
-	component := views.Hello("Dave")
-	base := views.Base(component)
-	renderComponent(base, c)
+
+	renderComponent(views.Base(views.Home()), c)
 	return nil
 }
 

@@ -26,13 +26,19 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func (s *Server) registerLoggedInRoutes(group *echo.Group) {
-	group.GET("", s.handleDashboard)
+	group.GET("/", s.handleDashboard)
+	group.GET("/testing/", s.handleTest)
+}
+func (s *Server) handleTest(c echo.Context) error {
+	component := views.Dashboard()
+	base := views.Base(component)
+	renderComponent(base, c)
+	return nil
 }
 
 // will be the main page of the system
-// let's mirror our current live version that pulls in the stuff
 func (s *Server) handleDashboard(c echo.Context) error {
-	component := views.Hello("Dave")
+	component := views.Dashboard()
 	base := views.Base(component)
 	renderComponent(base, c)
 	return nil

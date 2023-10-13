@@ -36,9 +36,10 @@ func NewServer(config *config.EnvConfig) *Server {
 	// server
 
 	e := echo.New()
+	e.Pre(middleware.AddTrailingSlash())
 	gob.Register(services.SessionPayload{})
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
-	ss := services.SessionService{SessionName: "_session", MaxAge: 20}
+	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
 	// initialize the rest of our services
 	s := &Server{
@@ -51,14 +52,14 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.Static("/static", "static")
 	e.Use(middleware.Gzip())
 	e.Validator = &CustomValidator{validator: validator.New()}
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 
 	e.Use(middleware.Recover())
 
 	// health check routes
-	e.HEAD("/_health", s.healthCheckRoute)
-	e.GET("/_health", s.healthCheckRoute)
+	e.HEAD("/_health/", s.healthCheckRoute)
+	e.GET("/_health/", s.healthCheckRoute)
 
 	s.registerPublicRoutes()
 
