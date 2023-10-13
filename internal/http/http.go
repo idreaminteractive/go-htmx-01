@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"encoding/gob"
 	"main/internal/config"
 	"main/internal/services"
 
@@ -35,8 +36,9 @@ func NewServer(config *config.EnvConfig) *Server {
 	// server
 
 	e := echo.New()
+	gob.Register(services.SessionPayload{})
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
-	ss := services.SessionService{CookieName: "_session", MaxAge: 3600}
+	ss := services.SessionService{SessionName: "_session", MaxAge: 20}
 
 	// initialize the rest of our services
 	s := &Server{
@@ -49,18 +51,21 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.Static("/static", "static")
 	e.Use(middleware.Gzip())
 	e.Validator = &CustomValidator{validator: validator.New()}
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 
 	e.Use(middleware.Recover())
 
+	// health check routes
 	e.HEAD("/_health", s.healthCheckRoute)
-
 	e.GET("/_health", s.healthCheckRoute)
 
-	s.registerAuthRoutes()
 	s.registerPublicRoutes()
-	s.registerLoggedInRoutes()
+
+	loggedInGroup := e.Group("/dashboard")
+	loggedInGroup.Use(s.requireAuth)
+
+	s.registerLoggedInRoutes(loggedInGroup)
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {

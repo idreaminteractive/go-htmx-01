@@ -1,17 +1,27 @@
 package http
 
 import (
+	"main/internal/services"
 	"main/internal/views"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
-func (s *Server) registerAuthRoutes() {
+func (s *Server) registerPublicRoutes() {
+	s.echo.GET("/", s.handleHomeGet)
 	s.echo.GET("/login", s.handleLoginGet)
 	s.echo.POST("/login", s.handleLoginPost)
+}
+
+// will be the main page of the system
+// let's mirror our current live version that pulls in the stuff
+func (s *Server) handleHomeGet(c echo.Context) error {
+	component := views.Hello("Dave")
+	base := views.Base(component)
+	renderComponent(base, c)
+	return nil
 }
 
 func (s *Server) handleLoginPost(c echo.Context) error {
@@ -25,11 +35,12 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 		// login failed, so let's send back bad request
 		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
-		templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
+		renderComponent(component, c)
 		return nil
 	}
 	logrus.Info("Success?")
 	// create our session + stuff
+	s.sessionService.WriteSession(c, services.SessionPayload{UserId: user.Email})
 	c.Response().Header().Set("HX-Redirect", "/dashboard")
 	return c.NoContent(200)
 }
@@ -38,6 +49,6 @@ func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
 	component := views.LoginPage(views.UserLoginDTO{}, views.UserLoginFormErrors{})
 	base := views.Base(component)
-	templ.Handler(base).ServeHTTP(c.Response().Writer, c.Request())
+	renderComponent(base, c)
 	return nil
 }
