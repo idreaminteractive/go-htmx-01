@@ -46,7 +46,9 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 		renderComponent(component, c)
 		return nil
 	}
-	logrus.Info("Success?")
+
+	// create our user + id
+
 	// create our session + stuff
 	s.sessionService.WriteSession(c, services.SessionPayload{UserId: user.Email})
 	c.Response().Header().Set("HX-Redirect", "/dashboard")

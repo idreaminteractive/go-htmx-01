@@ -20,9 +20,10 @@ import (
 const ShutdownTimeout = 1 * time.Second
 
 type Server struct {
-	echo           *echo.Echo
-	config         *config.EnvConfig
-	sessionService services.ISessionService
+	echo                  *echo.Echo
+	config                *config.EnvConfig
+	sessionService        services.ISessionService
+	authenticationService services.IAuthenticationService
 }
 type CustomValidator struct {
 	validator *validator.Validate
@@ -41,11 +42,14 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
+	as := services.AuthenticationService{}
+
 	// initialize the rest of our services
 	s := &Server{
-		echo:           e,
-		sessionService: &ss,
-		config:         config,
+		authenticationService: &as,
+		echo:                  e,
+		sessionService:        &ss,
+		config:                config,
 	}
 
 	// for now, this is fine - we'll set some monster caching later on
