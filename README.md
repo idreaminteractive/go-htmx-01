@@ -63,3 +63,7 @@ A very opinionated stack we can reuse over and over.
 
 - Honeycomb.io
 - Bunny.net CDN
+
+# Creating Migrations
+
+`goose -dir migrations sqlite3 /litefs/potato.db create add_user_email sql`

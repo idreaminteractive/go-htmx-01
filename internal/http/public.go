@@ -48,9 +48,16 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	}
 
 	// create our user + id
+	results, err := s.authenticationService.Authenticate(user)
+	if err != nil {
+		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		// return the view with our error
+		renderComponent(component, c)
+		return nil
+	}
 
 	// create our session + stuff
-	s.sessionService.WriteSession(c, services.SessionPayload{UserId: user.Email})
+	s.sessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
 	c.Response().Header().Set("HX-Redirect", "/dashboard")
 	return c.NoContent(200)
 }

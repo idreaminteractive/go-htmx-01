@@ -5,7 +5,7 @@ PRAGMA foreign_keys=off;
 
 
 -- setup both our tables
-alter TABLE user add column email text ;
+alter TABLE user add column email text NOT NULL ;
 create unique index  if not exists user_email_idx on user (email);
 
 

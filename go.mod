@@ -3,10 +3,11 @@ module main
 go 1.20
 
 require (
-	github.com/a-h/templ v0.2.364
+	github.com/a-h/templ v0.2.408
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/go-faker/faker/v4 v4.1.1
 	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/gorilla/sessions v1.2.1
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/sirupsen/logrus v1.9.3
@@ -15,7 +16,6 @@ require (
 require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/gorilla/sessions v1.2.1 // indirect
 )
 
 require (

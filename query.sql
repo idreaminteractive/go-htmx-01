@@ -32,5 +32,10 @@ WHERE id = ?;
 
 -- name: CreateUser :one
 insert into user (
-  first_name, last_name, password
-) values (? , ?, ?) returning *;
+  password, email
+) values (? , ?) returning *;
+
+
+-- name: GetUserByEmail :one
+select * from user 
+where email = ? limit 1; 

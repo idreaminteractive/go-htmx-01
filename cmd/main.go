@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"main/internal/config"
+	"main/internal/db"
 	"main/internal/http"
 	"main/internal/sqlite"
 	"os"
 	"os/signal"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,11 +27,20 @@ func NewProgram() *Program {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
 	logrus.Info("Logging Ready to Go")
+
+	database := sqlite.NewDB(config.DatabaseFileName)
+	if err := database.Open(); err != nil {
+		logrus.WithError(err).Error("Of")
+		logrus.Panic("Could not open db")
+	}
+
+	queries := db.New(database.Connection)
+
 	return &Program{
 		// wrapper for our sqlite db functionality
 		DB: sqlite.NewDB(config.DatabaseFileName),
 		// wrapper for our http server w/ all the services
-		HTTPServer: http.NewServer(config),
+		HTTPServer: http.NewServer(config, queries),
 	}
 }
 

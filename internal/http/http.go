@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"main/internal/config"
+	"main/internal/db"
 	"main/internal/services"
 
 	"net/http"
@@ -32,7 +33,7 @@ type CustomValidator struct {
 func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
-func NewServer(config *config.EnvConfig) *Server {
+func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
 
@@ -42,7 +43,7 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
-	as := services.AuthenticationService{}
+	as := services.AuthenticationService{Queries: queries}
 
 	// initialize the rest of our services
 	s := &Server{
