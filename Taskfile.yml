@@ -11,25 +11,13 @@ tasks:
 
   buildcss:
     cmds:
-      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
+      - postcss styles/input.css -o static/styles.css -m 
 
   css:
     cmds:
-      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --watch
+      - npx postcss styles/input.css -o static/styles.css -m 
 
-  # css + other assets
-  assets:
-    deps: [css]
-
-  # these are old ones here, using scss and things
-  sass:
-    cmds:
-      - sass -w styles/input.scss tempcss/output.css
-
-  postcss:
-    cmds:
-      - npx postcss tempcss/output.css -o static/styles.css -m -w
-
+ 
   # reset local
   reset:
     cmds:
