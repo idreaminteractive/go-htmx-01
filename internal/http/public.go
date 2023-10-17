@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
 )
 
 func (s *Server) registerPublicRoutes() {
@@ -38,7 +37,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	logrus.WithField("user", user).Info("User")
+
 	if err = c.Validate(user); err != nil {
 		// login failed, so let's send back bad request
 		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
@@ -50,6 +49,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	// create our user + id
 	results, err := s.authenticationService.Authenticate(user)
 	if err != nil {
+
 		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)

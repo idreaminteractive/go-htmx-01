@@ -11,11 +11,11 @@ tasks:
 
   buildcss:
     cmds:
-      - postcss styles/input.css -o static/styles.css -m 
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
 
   css:
     cmds:
-      - npx postcss styles/input.css -o static/styles.css -m 
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --watch
 
  
   # reset local
