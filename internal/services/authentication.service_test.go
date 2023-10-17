@@ -1,8 +1,9 @@
 package services
 
 import (
-	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 // todo - test!
@@ -12,22 +13,47 @@ import (
 // create queries obj
 // create service + instantiate
 
-// TestHelloName calls greetings.Hello with a name, checking
-// for a valid return value.
-func TestHelloName(t *testing.T) {
-	name := "Gladys"
-	want := regexp.MustCompile(`\b` + name + `\b`)
-	msg, err := Hello("Gladys")
-	if !want.MatchString(msg) || err != nil {
-		t.Fatalf(`Hello("Gladys") = %q, %v, want match for %#q, nil`, msg, err, want)
-	}
+type ServiceTestSuite struct {
+	suite.Suite
 }
 
-// TestHelloEmpty calls greetings.Hello with an empty string,
-// checking for an error.
-func TestHelloEmpty(t *testing.T) {
-	msg, err := Hello("")
-	if msg != "" || err == nil {
-		t.Fatalf(`Hello("") = %q, %v, want "", error`, msg, err)
-	}
+func (s *ServiceTestSuite) SetupSuite() {
+	// create the db
+	s.T().Log("SetupSuite")
+}
+
+func (s *ServiceTestSuite) SetupTest() {
+	// setup services + values
+	s.T().Log("SetupTest")
+}
+
+func (s *ServiceTestSuite) BeforeTest(suiteName, testName string) {
+	// clear + reboot the db
+	// setup mocks, etc
+	s.T().Logf("BeforeTest, %v, %v\n", suiteName, testName)
+}
+
+func (s *ServiceTestSuite) Test() {
+	s.T().Log("Test")
+}
+
+func (s *ServiceTestSuite) AfterTest(suiteName, testName string) {
+	// clear mocks
+	s.T().Logf("AfterTest, %v, %v\n", suiteName, testName)
+}
+
+func (s *ServiceTestSuite) TearDownTest() {
+	// nothing?
+	s.T().Log("TearDownTest")
+}
+
+func (s *ServiceTestSuite) TearDownSuite() {
+	s.T().Log("TearDownSuite")
+	// remove the db
+}
+
+// TestHelloName calls greetings.Hello with a name, checking
+// for a valid return value.
+func TestAuthSuite(t *testing.T) {
+	suite.Run(t, new(ServiceTestSuite))
 }
