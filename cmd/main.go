@@ -37,6 +37,7 @@ func NewProgram() *Program {
 	queries := db.New(database.Connection)
 
 	return &Program{
+		// i feellike i don't even need this???
 		// wrapper for our sqlite db functionality
 		DB: sqlite.NewDB(config.DatabaseFileName),
 		// wrapper for our http server w/ all the services
@@ -60,11 +61,6 @@ func (m *Program) Close() error {
 }
 
 func (m *Program) Run(ctx context.Context) error {
-	// todo - fill in the actual run program
-
-	// todo - initialize all the services backed by db
-
-	// todo - attach all services on m.HTTPServer
 
 	if err := m.HTTPServer.Open(":8080"); err != nil {
 		return err
