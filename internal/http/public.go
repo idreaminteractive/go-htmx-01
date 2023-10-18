@@ -32,17 +32,20 @@ func (s *Server) handleHomeGet(c echo.Context) error {
 }
 
 func (s *Server) handleLoginPost(c echo.Context) error {
+
 	var user views.UserLoginDTO
-	err := c.Bind(&user)
-	if err != nil {
+
+	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err = c.Validate(user); err != nil {
+	if err := c.Validate(user); err != nil {
+
 		// login failed, so let's send back bad request
 		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
-		renderComponent(component, c)
+
+		renderComponent(component, c, 400)
 		return nil
 	}
 

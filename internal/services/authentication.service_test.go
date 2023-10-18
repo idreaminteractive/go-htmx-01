@@ -26,6 +26,7 @@ type ServiceTestSuite struct {
 
 // todo - refactor this out to make a global setup + tear down...
 func (s *ServiceTestSuite) SetupSuite() {
+	tests.GeneralSuiteSetup()
 	s.context = context.Background()
 	s.databasePath = fmt.Sprintf("./%s.db", faker.UUIDDigit())
 	// create the db + run goose migrations
