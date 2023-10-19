@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func (s *Server) registerPublicRoutes() {
@@ -42,7 +43,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	if err := c.Validate(user); err != nil {
 
 		// login failed, so let's send back bad request
-		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		csrf_value := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+		component := views.LoginForm(csrf_value, user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 
 		renderComponent(component, c, 400)
@@ -52,8 +54,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	// create our user + id
 	results, err := s.authenticationService.Authenticate(user)
 	if err != nil {
-
-		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		csrf_value := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+		component := views.LoginForm(csrf_value, user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)
 		return nil
@@ -67,7 +69,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 
 func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
-	component := views.LoginPage(views.UserLoginDTO{}, views.UserLoginFormErrors{})
+	csrf_value := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	component := views.LoginPage(csrf_value, views.UserLoginDTO{}, views.UserLoginFormErrors{})
 	base := views.Base(component)
 	renderComponent(base, c)
 	return nil

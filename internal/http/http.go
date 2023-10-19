@@ -33,14 +33,31 @@ type CustomValidator struct {
 func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
-func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
-	// This is where we initialize all our services and attach to our
-	// server
 
+func setupEcho(sessionSecret string) *echo.Echo {
+	// sets up echo with standard things
+	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
 	gob.Register(services.SessionPayload{})
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(sessionSecret))))
+
+	e.Use(middleware.Gzip())
+	e.Validator = &CustomValidator{validator: validator.New()}
+	e.Use(middleware.Logger())
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "form:csrf",
+	}))
+	return e
+}
+
+func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
+	// This is where we initialize all our services and attach to our
+	// server
+	e := setupEcho(config.SessionSecret)
+
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
 	as := services.AuthenticationService{Queries: queries}
@@ -55,12 +72,6 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 
 	// for now, this is fine - we'll set some monster caching later on
 	e.Static("/static", "static")
-	e.Use(middleware.Gzip())
-	e.Validator = &CustomValidator{validator: validator.New()}
-	e.Use(middleware.Logger())
-	e.Use(middleware.RequestID())
-
-	e.Use(middleware.Recover())
 
 	// health check routes
 	e.HEAD("/_health/", s.healthCheckRoute)

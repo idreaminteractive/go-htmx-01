@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoginForm_Get(t *testing.T) {
+func TestViewLoginForm_Get(t *testing.T) {
 	// Pipe the rendered template into goquery.
 	r, w := io.Pipe()
 
 	go func() {
-		_ = LoginForm(UserLoginDTO{}, UserLoginFormErrors{}).Render(context.Background(), w)
+		_ = LoginForm("", UserLoginDTO{}, UserLoginFormErrors{}).Render(context.Background(), w)
 		_ = w.Close()
 	}()
 	doc, err := goquery.NewDocumentFromReader(r)
@@ -35,13 +35,15 @@ func TestLoginForm_Get(t *testing.T) {
 
 }
 
-func TestLoginForm_WithErrors(t *testing.T) {
+func TestViewLoginForm_WithErrors(t *testing.T) {
 	// Pipe the rendered template into goquery.
 	r, w := io.Pipe()
 
 	prefilled := "test"
+
 	go func() {
-		_ = LoginForm(UserLoginDTO{Email: prefilled}, UserLoginFormErrors{Message: "Error in post"}).Render(context.Background(), w)
+
+		_ = LoginForm("", UserLoginDTO{Email: prefilled}, UserLoginFormErrors{Message: "Error in post"}).Render(context.Background(), w)
 		_ = w.Close()
 	}()
 	doc, err := goquery.NewDocumentFromReader(r)

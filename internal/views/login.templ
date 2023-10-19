@@ -1,7 +1,7 @@
 package views
 
 
-templ LoginPage(previousEntry UserLoginDTO, errors UserLoginFormErrors) {
+templ LoginPage(csrf string, previousEntry UserLoginDTO, errors UserLoginFormErrors) {
 	<div class=" min-h-screen flex items-center justify-center">
 		<div class="max-w-sm rounded-lg shadow-lg  p-6 space-y-6 border  border-gray-200">
 			<div class="space-y-2 text-center">
@@ -9,16 +9,17 @@ templ LoginPage(previousEntry UserLoginDTO, errors UserLoginFormErrors) {
 					Login
 				</h1>
 			</div>
-			@LoginForm(previousEntry, errors)
+			@LoginForm(csrf, previousEntry, errors)
 		</div>
 	</div>
 }
 
 
 
-templ LoginForm (previousEntry UserLoginDTO, errors UserLoginFormErrors) {
+templ LoginForm (csrf string, previousEntry UserLoginDTO, errors UserLoginFormErrors) {
 	
 	<form hx-post="/login" class="group">
+		<input type="hidden" name="csrf" value={csrf} />
 		<div class="space-y-4">
 			<div class="space-y-2">
 				<div class="form-control w-full max-w-xs">
