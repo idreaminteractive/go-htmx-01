@@ -62,18 +62,22 @@ func (s *ServiceTestSuite) SetupTest() {
 
 // left off here. echo is setup + we need to setup routes!
 func (s *ServiceTestSuite) TestGetLogin() {
-	e := setupEcho(faker.Word())
-	s.server.registerPublicRoutes()
+	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
+	e.GET("/login/", s.server.handleLoginGet)
+
 	req := httptest.NewRequest(http.MethodGet, "/login/", nil)
 	rec := httptest.NewRecorder()
+
 	e.ServeHTTP(rec, req)
 	assert.Equal(s.T(), http.StatusOK, rec.Code, "Bad status")
 
 }
 
 func (s *ServiceTestSuite) TestPostLogin_MissingFields() {
-	e := setupEcho("")
+	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
+	e.POST("/login/", s.server.handleLoginPost)
 	f := make(url.Values)
+	f.Set("csrf", "stuff")
 	f.Set("password", faker.Password())
 	// f.Set("email", "not an email")
 	req := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(f.Encode()))
@@ -87,7 +91,8 @@ func (s *ServiceTestSuite) TestPostLogin_MissingFields() {
 }
 
 func (s *ServiceTestSuite) TestPostLogin_InvalidData() {
-	e := setupEcho("")
+	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
+	e.POST("/login/", s.server.handleLoginPost)
 	f := make(url.Values)
 	f.Set("password", faker.Password())
 	f.Set("email", "not an email")
@@ -95,12 +100,15 @@ func (s *ServiceTestSuite) TestPostLogin_InvalidData() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 
 	rec := httptest.NewRecorder()
+
 	e.ServeHTTP(rec, req)
+
 	assert.Equal(s.T(), http.StatusBadRequest, rec.Code)
 }
 
 func (s *ServiceTestSuite) TestPostLogin_HappyPath() {
-	e := setupEcho("")
+	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
+	e.POST("/login/", s.server.handleLoginPost)
 	f := make(url.Values)
 	f.Set("password", faker.Password())
 	f.Set("email", faker.Email())
@@ -110,12 +118,9 @@ func (s *ServiceTestSuite) TestPostLogin_HappyPath() {
 
 	rec := httptest.NewRecorder()
 
-	c := e.NewContext(req, rec)
+	e.ServeHTTP(rec, req)
 
-	if s.NoError(s.server.handleLoginPost(c)) {
-		s.Equal(http.StatusOK, rec.Code)
-
-	}
+	assert.Equal(s.T(), http.StatusOK, rec.Code)
 
 }
 

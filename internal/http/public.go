@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func (s *Server) registerPublicRoutes() {
@@ -39,11 +38,10 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-
+	csrf_value := getCSRFValueFromContext(c)
 	if err := c.Validate(user); err != nil {
 
 		// login failed, so let's send back bad request
-		csrf_value := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 		component := views.LoginForm(csrf_value, user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 
@@ -54,7 +52,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	// create our user + id
 	results, err := s.authenticationService.Authenticate(user)
 	if err != nil {
-		csrf_value := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+
 		component := views.LoginForm(csrf_value, user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)
@@ -69,7 +67,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 
 func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
-	csrf_value := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	csrf_value := getCSRFValueFromContext(c)
+	// this is ALWA
 	component := views.LoginPage(csrf_value, views.UserLoginDTO{}, views.UserLoginFormErrors{})
 	base := views.Base(component)
 	renderComponent(base, c)

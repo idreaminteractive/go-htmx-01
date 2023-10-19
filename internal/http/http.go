@@ -34,29 +34,39 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
 
-func setupEcho(sessionSecret string) *echo.Echo {
+type EchoSetupStruct struct {
+	SessionSecret string
+	// default bool is false, so we generally want to enable it
+	DisableCSRF bool
+}
+
+func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
 	gob.Register(services.SessionPayload{})
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(sessionSecret))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
 	e.Use(middleware.Gzip())
 	e.Validator = &CustomValidator{validator: validator.New()}
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Recover())
-	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "form:csrf",
-	}))
+	if !config.DisableCSRF {
+		e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+			TokenLookup: "form:csrf",
+		}))
+
+	}
+
 	return e
 }
 
 func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
-	e := setupEcho(config.SessionSecret)
+	e := setupEcho(EchoSetupStruct{SessionSecret: config.SessionSecret})
 
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
@@ -107,4 +117,14 @@ func (s *Server) Close() error {
 
 	return s.echo.Shutdown(ctx)
 
+}
+
+// safe csrf getting
+func getCSRFValueFromContext(c echo.Context) string {
+	context := c.Get(middleware.DefaultCSRFConfig.ContextKey)
+	if context == nil {
+		// we don't have anything here, use blank string
+		return ""
+	}
+	return context.(string)
 }
