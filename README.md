@@ -8,7 +8,6 @@ A fancy Todo app
 ## Todo
 
 - Update db schema to be notes instead of todos
-- CSRF setup + validation (including tests)
 - Creating Notes from Dashboard
 - Setting Note as public or private
 - Editing notes
