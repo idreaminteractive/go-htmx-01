@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoginForm_Get(t *testing.T) {
@@ -20,21 +21,17 @@ func TestLoginForm_Get(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read template: %v", err)
 	}
-	// expect that the value of our input fields are empty
-	if doc.Find(".text-error").Length() > 0 {
-		t.Error("Found an error rendered when it was empty!")
-	}
+
+	assert.Equal(t, 0, doc.Find(".text-error").Length(), "Found .text-error when we're not supposed to")
 
 	// get the form inputs  and make sure the values are empty!
 	emailField := doc.Find("input[type='email']").First()
 
+	assert.NotNil(t, emailField, "Could not find email input field")
 	val, exists := emailField.Attr("value")
-	if !exists {
-		t.Error("Could not find value")
-	}
-	if val != "" {
-		t.Error("Value is not empty")
-	}
+	assert.True(t, exists, "Missing input field value item")
+
+	assert.Equal(t, "", val, "Value is not empty")
 
 }
 
@@ -51,21 +48,15 @@ func TestLoginForm_WithErrors(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read template: %v", err)
 	}
-	// expect that the value of our input fields are empty
-	if doc.Find(".text-error").Length() != 1 {
-		t.Error("Missing our error message")
-	}
+
+	// Should have our error message
+	assert.Equal(t, 1, doc.Find(".text-error").Length(), "Missing .text-error")
 
 	// get the form inputs  and make sure the values are empty!
 	emailField := doc.Find("input[type='email']").First()
-
+	assert.NotNil(t, emailField, "Could not find email input field")
 	val, exists := emailField.Attr("value")
-	if !exists {
-		t.Error("Could not find field")
-	}
+	assert.True(t, exists, "Missing input field value item")
 
-	if val != prefilled {
-		t.Error("Value is not prefilled")
-	}
-
+	assert.Equal(t, prefilled, val, "Value does not match previous entry")
 }
