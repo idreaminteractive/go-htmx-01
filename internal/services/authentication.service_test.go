@@ -117,6 +117,6 @@ func (s *ServiceTestSuite) TearDownSuite() {
 	s.database.Close()
 	tests.TearDownSuite(s.databasePath)
 }
-func TestAuthSuite(t *testing.T) {
+func TestServicesAuthenticationSuite(t *testing.T) {
 	suite.Run(t, new(ServiceTestSuite))
 }
