@@ -2,6 +2,7 @@ package http
 
 import (
 	"main/internal/db"
+	"main/internal/services"
 	"main/tests"
 	"strings"
 
@@ -34,6 +35,17 @@ func (m *MockAuthService) Authenticate(payload views.UserLoginDTO) (*db.User, er
 	return &db.User{}, nil
 }
 
+type MockSessionService struct {
+}
+
+func (mss *MockSessionService) WriteSession(c echo.Context, sp services.SessionPayload) error {
+	return nil
+}
+
+func (mss *MockSessionService) ReadSession(c echo.Context) (services.SessionPayload, error) {
+	return services.SessionPayload{}, nil
+}
+
 // todo - refactor this out to make a global setup + tear down...
 func (s *ServiceTestSuite) SetupSuite() {
 	tests.GeneralSuiteSetup()
@@ -42,7 +54,10 @@ func (s *ServiceTestSuite) SetupSuite() {
 
 func (s *ServiceTestSuite) SetupTest() {
 	// hook it up
-	s.server = &Server{authenticationService: &MockAuthService{}}
+	s.server = &Server{
+		authenticationService: &MockAuthService{},
+		sessionService:        &MockSessionService{},
+	}
 }
 
 func (s *ServiceTestSuite) TestGetLogin() {
