@@ -3,11 +3,6 @@
     "name": "DO NOT ADD ANYTHING ELSE HERE PLS"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.16",
-    "cssnano": "^6.0.1",
-    "postcss": "^8.4.31",
-    "postcss-cli": "^10.1.0",
-    "postcss-fail-on-warn": "^0.2.1",
-    "postcss-nested": "^6.0.1"
+    "daisyui": "^3.9.2"
   }
 }

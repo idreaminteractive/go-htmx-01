@@ -16,7 +16,8 @@ type ISessionService interface {
 }
 
 type SessionPayload struct {
-	UserId string `json:"userId"`
+	Email  string `json:"email"`
+	UserId int    `json:"userId"`
 }
 
 type SessionService struct {

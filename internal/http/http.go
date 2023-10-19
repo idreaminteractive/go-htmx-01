@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"main/internal/config"
+	"main/internal/db"
 	"main/internal/services"
 
 	"net/http"
@@ -20,9 +21,10 @@ import (
 const ShutdownTimeout = 1 * time.Second
 
 type Server struct {
-	echo           *echo.Echo
-	config         *config.EnvConfig
-	sessionService services.ISessionService
+	echo                  *echo.Echo
+	config                *config.EnvConfig
+	sessionService        services.ISessionService
+	authenticationService services.IAuthenticationService
 }
 type CustomValidator struct {
 	validator *validator.Validate
@@ -31,7 +33,7 @@ type CustomValidator struct {
 func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
-func NewServer(config *config.EnvConfig) *Server {
+func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
 
@@ -41,11 +43,14 @@ func NewServer(config *config.EnvConfig) *Server {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
+	as := services.AuthenticationService{Queries: queries}
+
 	// initialize the rest of our services
 	s := &Server{
-		echo:           e,
-		sessionService: &ss,
-		config:         config,
+		authenticationService: &as,
+		echo:                  e,
+		sessionService:        &ss,
+		config:                config,
 	}
 
 	// for now, this is fine - we'll set some monster caching later on

@@ -18,5 +18,6 @@ type User struct {
 	ID        int64
 	FirstName sql.NullString
 	LastName  sql.NullString
-	Password  sql.NullString
+	Password  string
+	Email     string
 }

@@ -17,7 +17,7 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 
-		if sess.UserId == "" {
+		if sess.UserId == 0 {
 			logrus.Error("Not logged in")
 			return c.Redirect(http.StatusMovedPermanently, "/login")
 		}

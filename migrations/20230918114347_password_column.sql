@@ -5,7 +5,7 @@ PRAGMA foreign_keys=off;
 
 
 -- setup both our tables
-alter TABLE user add column password text;
+alter TABLE user add column password text not null;
 
 
 PRAGMA foreign_key_check;

@@ -8,9 +8,9 @@ import (
 )
 
 type DB struct {
-	db     *sql.DB
-	ctx    context.Context // background context
-	cancel func()          // cancel background context
+	Connection *sql.DB
+	ctx        context.Context // background context
+	cancel     func()          // cancel background context
 
 	// Placeholder for queries from sqlc
 
@@ -37,13 +37,13 @@ func (db *DB) Open() (err error) {
 	if db.DSN == "" {
 		return fmt.Errorf("DSN required")
 	}
-	if db.db, err = sql.Open("sqlite3", db.DSN); err != nil {
+	if db.Connection, err = sql.Open("sqlite3", db.DSN); err != nil {
 		return err
 	}
 
 	// Enable WAL. SQLite performs better with the WAL  because it allows
 	// multiple readers to operate while data is being written.
-	if _, err := db.db.Exec(`PRAGMA journal_mode = wal;`); err != nil {
+	if _, err := db.Connection.Exec(`PRAGMA journal_mode = wal;`); err != nil {
 		return fmt.Errorf("enable wal: %w", err)
 	}
 
@@ -51,7 +51,7 @@ func (db *DB) Open() (err error) {
 	// foreign key constraints by default... which is kinda insane. There's some
 	// overhead on inserts to verify foreign key integrity but it's definitely
 	// worth it.
-	if _, err := db.db.Exec(`PRAGMA foreign_keys = ON;`); err != nil {
+	if _, err := db.Connection.Exec(`PRAGMA foreign_keys = ON;`); err != nil {
 		return fmt.Errorf("foreign keys pragma: %w", err)
 	}
 	return nil
@@ -62,8 +62,8 @@ func (db *DB) Close() error {
 	db.cancel()
 
 	// Close database.
-	if db.db != nil {
-		return db.db.Close()
+	if db.Connection != nil {
+		return db.Connection.Close()
 	}
 	return nil
 }

@@ -20,12 +20,16 @@ func main() {
 	}
 
 	queries := todos.New(db)
-	a := todos.CreateUserParams{}
+	a := todos.CreateUserParams{
+		Password: "dave",
+		Email:    "dwiper@gmail.com",
+	}
 
 	err = faker.FakeData(&a)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Printf("%v", a)
 	user, err := queries.CreateUser(ctx, a)
 	if err != nil {
 		log.Fatal(err)

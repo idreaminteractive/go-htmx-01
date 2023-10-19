@@ -2,7 +2,18 @@ version: "3"
 
 tasks:
   dev:
-    deps: [css, air]
+    deps: [devcss, air]
+
+  build:
+    deps: [buildcss, sqlc, buildmain]
+
+  buildmain:
+    cmds:
+      - templ generate && go build -o ./tmp/main ./cmd/main.go
+
+  testall:
+    cmds:
+      - go test -v ./...
 
   # hot reload
   air:
@@ -11,13 +22,12 @@ tasks:
 
   buildcss:
     cmds:
-      - postcss styles/input.css -o static/styles.css -m 
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
 
-  css:
+  devcss:
     cmds:
-      - npx postcss styles/input.css -o static/styles.css -m 
+      - tailwindcss -i ./styles/input.css -o ./static/css/styles.css --watch
 
- 
   # reset local
   reset:
     cmds:

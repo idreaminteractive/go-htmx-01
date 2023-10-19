@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
 )
 
 func (s *Server) registerPublicRoutes() {
@@ -33,22 +32,35 @@ func (s *Server) handleHomeGet(c echo.Context) error {
 }
 
 func (s *Server) handleLoginPost(c echo.Context) error {
+
 	var user views.UserLoginDTO
-	err := c.Bind(&user)
-	if err != nil {
+
+	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	logrus.WithField("user", user).Info("User")
-	if err = c.Validate(user); err != nil {
+
+	if err := c.Validate(user); err != nil {
+
 		// login failed, so let's send back bad request
+		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		// return the view with our error
+
+		renderComponent(component, c, 400)
+		return nil
+	}
+
+	// create our user + id
+	results, err := s.authenticationService.Authenticate(user)
+	if err != nil {
+
 		component := views.LoginForm(user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)
 		return nil
 	}
-	logrus.Info("Success?")
+
 	// create our session + stuff
-	s.sessionService.WriteSession(c, services.SessionPayload{UserId: user.Email})
+	s.sessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
 	c.Response().Header().Set("HX-Redirect", "/dashboard")
 	return c.NoContent(200)
 }

@@ -1,7 +1,3 @@
-.potato {
-    background-color: red;
-
-    &:hover {
-        text-decoration: underline;
-    }
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

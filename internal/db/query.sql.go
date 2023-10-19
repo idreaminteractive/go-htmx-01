@@ -34,24 +34,24 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, e
 
 const createUser = `-- name: CreateUser :one
 insert into user (
-  first_name, last_name, password
-) values (? , ?, ?) returning id, first_name, last_name, password
+  password, email
+) values (? , ?) returning id, first_name, last_name, password, email
 `
 
 type CreateUserParams struct {
-	FirstName sql.NullString
-	LastName  sql.NullString
-	Password  sql.NullString
+	Password string
+	Email    string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.FirstName, arg.LastName, arg.Password)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Password, arg.Email)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
 		&i.Password,
+		&i.Email,
 	)
 	return i, err
 }
@@ -66,6 +66,41 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int64) error {
 	return err
 }
 
+const getAllUsers = `-- name: GetAllUsers :many
+
+select id, first_name, last_name, password, email from user
+`
+
+// test stuff
+func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Password,
+			&i.Email,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTodo = `-- name: GetTodo :one
 SELECT id, description, user_id FROM todo
 WHERE id = ? LIMIT 1
@@ -75,6 +110,24 @@ func (q *Queries) GetTodo(ctx context.Context, id int64) (Todo, error) {
 	row := q.db.QueryRowContext(ctx, getTodo, id)
 	var i Todo
 	err := row.Scan(&i.ID, &i.Description, &i.UserID)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+select id, first_name, last_name, password, email from user 
+where email = ? limit 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Password,
+		&i.Email,
+	)
 	return i, err
 }
 
