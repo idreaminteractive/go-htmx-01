@@ -5,28 +5,18 @@
 
 A fancy Todo app
 
+## Todo
 
-- User login w/ passwordless login
-  - Table + SQL setup
-  - Login form
-  - Login post
-    - CSRF validateion
-  - Parse login stuff
-  - validate
-  - return error
-  - on valid, generate passcode w/ timeout + send email
-  - reply with success + check your email message to user
-  - add email link route
-  - on emmail link click, check for existence of key attached to email + signing and things
-  - if success, set cookie + redirect
-  - if error, error
-  - add a dashboard oproected by session check to redirect to
-  - verify the user has access when hitting the dash
-- CSS (tailwind or sth else?)
-- Form entry + validation
-- DB migrations, seeding + sqlc
-- Websocket w/ real time updates
-https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
+- Update db schema to be notes instead of todos
+- CSRF setup + validation (including tests)
+- Creating Notes from Dashboard
+- Setting Note as public or private
+- Editing notes
+- Deleting notes
+- Public view on root route
+- SSE with some neat stuff
+
+
 
 ## What Stack and Services are we using?
 
@@ -45,7 +35,7 @@ A very opinionated stack we can reuse over and over.
 - github.com/caarlos0/env/v9
 - Echo Webserver
 - Goose
-- SQLite + LiteFS
+- SQLite + LiteFS 
 
 ### Testing:
 
