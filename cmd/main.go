@@ -9,6 +9,7 @@ import (
 	"main/internal/sqlite"
 	"os"
 	"os/signal"
+	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -16,8 +17,8 @@ import (
 
 // See the wtf project for reference
 type Program struct {
-	DB *sqlite.DB
-
+	DB         *sqlite.DB
+	Port       int
 	HTTPServer *http.Server
 }
 
@@ -36,10 +37,15 @@ func NewProgram() *Program {
 
 	queries := db.New(database.Connection)
 
+	port, err := strconv.Atoi(config.GoPort)
+	if err != nil {
+		logrus.Panic("Bad port!")
+	}
 	return &Program{
 		// i feellike i don't even need this???
 		// wrapper for our sqlite db functionality
-		DB: sqlite.NewDB(config.DatabaseFileName),
+		Port: port,
+		DB:   sqlite.NewDB(config.DatabaseFileName),
 		// wrapper for our http server w/ all the services
 		HTTPServer: http.NewServer(config, queries),
 	}
@@ -62,7 +68,7 @@ func (m *Program) Close() error {
 
 func (m *Program) Run(ctx context.Context) error {
 
-	if err := m.HTTPServer.Open(":8080"); err != nil {
+	if err := m.HTTPServer.Open(fmt.Sprintf(":%d", m.Port)); err != nil {
 		return err
 	}
 	return nil
