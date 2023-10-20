@@ -3,6 +3,7 @@ package http
 import (
 	"main/internal/services"
 	"main/internal/views"
+	"main/internal/views/dto"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -33,7 +34,7 @@ func (s *Server) handleHomeGet(c echo.Context) error {
 
 func (s *Server) handleLoginPost(c echo.Context) error {
 
-	var user views.UserLoginDTO
+	var user dto.UserLoginDTO
 
 	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -42,7 +43,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	if err := c.Validate(user); err != nil {
 
 		// login failed, so let's send back bad request
-		component := views.LoginForm(csrf_value, user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		component := views.LoginForm(csrf_value, user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 
 		renderComponent(component, c, 400)
@@ -53,7 +54,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	results, err := s.authenticationService.Authenticate(user)
 	if err != nil {
 
-		component := views.LoginForm(csrf_value, user, views.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		component := views.LoginForm(csrf_value, user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)
 		return nil
@@ -69,7 +70,7 @@ func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
 	csrf_value := getCSRFValueFromContext(c)
 	// this is ALWA
-	component := views.LoginPage(csrf_value, views.UserLoginDTO{}, views.UserLoginFormErrors{})
+	component := views.LoginPage(csrf_value, dto.UserLoginDTO{}, dto.UserLoginFormErrors{})
 	base := views.Base(component)
 	renderComponent(base, c)
 	return nil

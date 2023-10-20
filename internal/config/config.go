@@ -6,7 +6,7 @@ import (
 
 type EnvConfig struct {
 	DatabaseFileName string `env:"DATABASE_FILENAME" envDefault:"/litefs/potato.db"`
-	GoPort           string `env:"GO_PORT" envDefault:"8079"`
+	GoPort           string `env:"GO_PORT" envDefault:"8080"`
 	DopplerConfig    string `env:"DOPPLER_CONFIG"`
 	SessionSecret    string `env:"SESSION_SECRET"`
 }

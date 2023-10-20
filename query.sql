@@ -1,32 +1,33 @@
--- name: GetTodo :one
-SELECT * FROM todo
+-- name: GetNoteById :one
+SELECT * FROM note
 WHERE id = ? LIMIT 1;
 
--- name: ListTodos :many
-SELECT * FROM todo
+-- name: ListNotes :many
+SELECT * FROM note
 ORDER BY id;
 
--- name: CreateTodo :one
-INSERT INTO todo (
-  description,
+
+-- name: ListNotesForUser :many 
+SELECT (select count() from note) as count, * FROM note
+ where note.user_id = ? ORDER BY note.created_at desc limit 10;
+
+-- name: CreateNote :one
+INSERT INTO note (
+  content,
+  is_public,
   user_id
 ) VALUES (
-  ?, ?
+  ?, ?, ?
 )
 RETURNING *;
 
--- name: UpdateTodo :exec
-UPDATE todo
-set description = ?
+-- name: UpdateNote :exec
+UPDATE note
+set content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 
--- name: SetTodoDone :exec
-update todo
-set status = true 
-where id = ?;
-
--- name: DeleteTodo :exec
-DELETE FROM todo
+-- name: DeleteNote :exec
+DELETE FROM note
 WHERE id = ?;
 
 

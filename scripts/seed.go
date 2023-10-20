@@ -5,7 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	todos "main/internal/db"
+
+	"main/internal/db"
+	"main/internal/services"
+	"main/internal/views/dto"
 
 	"github.com/go-faker/faker/v4"
 	_ "github.com/mattn/go-sqlite3"
@@ -14,33 +17,21 @@ import (
 func main() {
 	ctx := context.Background()
 
-	db, err := sql.Open("sqlite3", "/litefs/potato.db")
+	database, err := sql.Open("sqlite3", "/litefs/potato.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	queries := todos.New(db)
-	a := todos.CreateUserParams{
-		Password: "dave",
-		Email:    "dwiper@gmail.com",
-	}
+	queries := db.New(database)
+	as := services.AuthenticationService{Queries: queries}
+	user, _ := as.Authenticate(dto.UserLoginDTO{Email: "dwiper@gmail.com", Password: "dave"})
 
-	err = faker.FakeData(&a)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("%v", a)
-	user, err := queries.CreateUser(ctx, a)
+	item, err := queries.CreateNote(ctx, db.CreateNoteParams{UserID: user.ID, Content: faker.Paragraph(), IsPublic: false})
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(user)
 
-	// _, err = queries.CreateTodo(ctx, todos.CreateTodoParams{Description: "This is a non-finished", UserID: }
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
+	fmt.Printf("%v", item)
 	// finished_todo, err := queries.CreateTodo(ctx, "Finished todo")
 	// if err != nil {
 	// 	log.Fatal(err)

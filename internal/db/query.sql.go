@@ -7,28 +7,37 @@ package db
 
 import (
 	"context"
-	"database/sql"
+	"time"
 )
 
-const createTodo = `-- name: CreateTodo :one
-INSERT INTO todo (
-  description,
+const createNote = `-- name: CreateNote :one
+INSERT INTO note (
+  content,
+  is_public,
   user_id
 ) VALUES (
-  ?, ?
+  ?, ?, ?
 )
-RETURNING id, description, user_id
+RETURNING id, content, user_id, is_public, created_at, updated_at
 `
 
-type CreateTodoParams struct {
-	Description string
-	UserID      sql.NullInt64
+type CreateNoteParams struct {
+	Content  string
+	IsPublic bool
+	UserID   int64
 }
 
-func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, createTodo, arg.Description, arg.UserID)
-	var i Todo
-	err := row.Scan(&i.ID, &i.Description, &i.UserID)
+func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (Note, error) {
+	row := q.db.QueryRowContext(ctx, createNote, arg.Content, arg.IsPublic, arg.UserID)
+	var i Note
+	err := row.Scan(
+		&i.ID,
+		&i.Content,
+		&i.UserID,
+		&i.IsPublic,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -56,13 +65,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const deleteTodo = `-- name: DeleteTodo :exec
-DELETE FROM todo
+const deleteNote = `-- name: DeleteNote :exec
+DELETE FROM note
 WHERE id = ?
 `
 
-func (q *Queries) DeleteTodo(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteTodo, id)
+func (q *Queries) DeleteNote(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteNote, id)
 	return err
 }
 
@@ -101,15 +110,22 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const getTodo = `-- name: GetTodo :one
-SELECT id, description, user_id FROM todo
+const getNoteById = `-- name: GetNoteById :one
+SELECT id, content, user_id, is_public, created_at, updated_at FROM note
 WHERE id = ? LIMIT 1
 `
 
-func (q *Queries) GetTodo(ctx context.Context, id int64) (Todo, error) {
-	row := q.db.QueryRowContext(ctx, getTodo, id)
-	var i Todo
-	err := row.Scan(&i.ID, &i.Description, &i.UserID)
+func (q *Queries) GetNoteById(ctx context.Context, id int64) (Note, error) {
+	row := q.db.QueryRowContext(ctx, getNoteById, id)
+	var i Note
+	err := row.Scan(
+		&i.ID,
+		&i.Content,
+		&i.UserID,
+		&i.IsPublic,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -131,21 +147,28 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	return i, err
 }
 
-const listTodos = `-- name: ListTodos :many
-SELECT id, description, user_id FROM todo
+const listNotes = `-- name: ListNotes :many
+SELECT id, content, user_id, is_public, created_at, updated_at FROM note
 ORDER BY id
 `
 
-func (q *Queries) ListTodos(ctx context.Context) ([]Todo, error) {
-	rows, err := q.db.QueryContext(ctx, listTodos)
+func (q *Queries) ListNotes(ctx context.Context) ([]Note, error) {
+	rows, err := q.db.QueryContext(ctx, listNotes)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Todo
+	var items []Note
 	for rows.Next() {
-		var i Todo
-		if err := rows.Scan(&i.ID, &i.Description, &i.UserID); err != nil {
+		var i Note
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.UserID,
+			&i.IsPublic,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -159,29 +182,65 @@ func (q *Queries) ListTodos(ctx context.Context) ([]Todo, error) {
 	return items, nil
 }
 
-const setTodoDone = `-- name: SetTodoDone :exec
-update todo
-set status = true 
-where id = ?
+const listNotesForUser = `-- name: ListNotesForUser :many
+SELECT (select count() from note) as count, id, content, user_id, is_public, created_at, updated_at FROM note
+ where note.user_id = ? ORDER BY note.created_at desc limit 10
 `
 
-func (q *Queries) SetTodoDone(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, setTodoDone, id)
-	return err
+type ListNotesForUserRow struct {
+	Count     int64
+	ID        int64
+	Content   string
+	UserID    int64
+	IsPublic  bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-const updateTodo = `-- name: UpdateTodo :exec
-UPDATE todo
-set description = ?
+func (q *Queries) ListNotesForUser(ctx context.Context, userID int64) ([]ListNotesForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNotesForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListNotesForUserRow
+	for rows.Next() {
+		var i ListNotesForUserRow
+		if err := rows.Scan(
+			&i.Count,
+			&i.ID,
+			&i.Content,
+			&i.UserID,
+			&i.IsPublic,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateNote = `-- name: UpdateNote :exec
+UPDATE note
+set content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
 
-type UpdateTodoParams struct {
-	Description string
-	ID          int64
+type UpdateNoteParams struct {
+	Content  string
+	IsPublic bool
+	ID       int64
 }
 
-func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) error {
-	_, err := q.db.ExecContext(ctx, updateTodo, arg.Description, arg.ID)
+func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
+	_, err := q.db.ExecContext(ctx, updateNote, arg.Content, arg.IsPublic, arg.ID)
 	return err
 }

@@ -25,6 +25,7 @@ type Server struct {
 	config                *config.EnvConfig
 	sessionService        services.ISessionService
 	authenticationService services.IAuthenticationService
+	notesService          *services.NotesService
 }
 type CustomValidator struct {
 	validator *validator.Validate
@@ -71,6 +72,8 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 
 	as := services.AuthenticationService{Queries: queries}
+	// if we want to hide the queries?
+	ns := services.InitNotesService(queries)
 
 	// initialize the rest of our services
 	s := &Server{
@@ -78,6 +81,7 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 		echo:                  e,
 		sessionService:        &ss,
 		config:                config,
+		notesService:          ns,
 	}
 
 	// for now, this is fine - we'll set some monster caching later on
