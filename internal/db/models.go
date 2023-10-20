@@ -6,12 +6,16 @@ package db
 
 import (
 	"database/sql"
+	"time"
 )
 
-type Todo struct {
-	ID          int64
-	Description string
-	UserID      sql.NullInt64
+type Note struct {
+	ID        int64
+	Content   string
+	UserID    int64
+	IsPublic  bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type User struct {

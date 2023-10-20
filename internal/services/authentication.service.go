@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"main/internal/db"
-	"main/internal/views"
+
+	"main/internal/views/dto"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type IAuthenticationService interface {
-	Authenticate(payload views.UserLoginDTO) (*db.User, error)
+	Authenticate(payload dto.UserLoginDTO) (*db.User, error)
 }
 
 type AuthenticationService struct {
@@ -28,7 +29,7 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (as *AuthenticationService) Authenticate(payload views.UserLoginDTO) (*db.User, error) {
+func (as *AuthenticationService) Authenticate(payload dto.UserLoginDTO) (*db.User, error) {
 	ctx := context.Background()
 	logrus.WithField("user", payload.Email).Info("Auth attempt")
 	results, err := as.Queries.GetUserByEmail(ctx, payload.Email)
@@ -57,6 +58,7 @@ func (as *AuthenticationService) Authenticate(payload views.UserLoginDTO) (*db.U
 		return &results, nil
 	} else {
 		// this needs to return a new auth error
+		logrus.Error("Failed pass check")
 		return nil, &Error{Code: EUNAUTHORIZED, Message: "Invalid password"}
 	}
 

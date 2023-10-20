@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"main/internal/db"
 	"main/internal/sqlite"
-	"main/internal/views"
+	"main/internal/views/dto"
 	"main/tests"
 	"testing"
 
@@ -56,7 +56,7 @@ func (s *ServiceTestSuite) TestAuthenticateNewUser() {
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(len(users), 0)
 	email, password := faker.Email(), faker.Password()
-	u, err := s.authService.Authenticate(views.UserLoginDTO{Email: email, Password: password})
+	u, err := s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
 	s.Nil(err, "Error is not nil")
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
@@ -71,7 +71,7 @@ func (s *ServiceTestSuite) TestAuthenticateNewUser() {
 func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
 	// make our user first
 	email, password := faker.Email(), faker.Password()
-	u, err := s.authService.Authenticate(views.UserLoginDTO{Email: email, Password: password})
+	u, err := s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
 	s.Nil(err, "Error is not nil")
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
@@ -79,7 +79,7 @@ func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(len(users), 1)
 
-	u, err = s.authService.Authenticate(views.UserLoginDTO{Email: email, Password: password})
+	u, err = s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
 	s.Nil(err, "Error is not nil")
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
@@ -92,12 +92,12 @@ func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
 func (s *ServiceTestSuite) TestBadPassword() {
 	// make our user first
 	email, password, badPassword := faker.Email(), faker.Password(), faker.Password()
-	u, err := s.authService.Authenticate(views.UserLoginDTO{Email: email, Password: password})
+	u, err := s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
 	s.Nil(err, "Error is not nil")
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
 
-	_, err = s.authService.Authenticate(views.UserLoginDTO{Email: email, Password: badPassword})
+	_, err = s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: badPassword})
 	s.NotNil(err, "Error is nil")
 }
 

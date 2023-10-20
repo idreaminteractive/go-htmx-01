@@ -3,14 +3,13 @@ package http
 import (
 	"main/internal/db"
 	"main/internal/services"
+	"main/internal/views/dto"
 	"main/tests"
 	"strings"
 
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-
-	"main/internal/views"
 
 	"testing"
 
@@ -31,7 +30,7 @@ type ServiceTestSuite struct {
 type MockAuthService struct {
 }
 
-func (m *MockAuthService) Authenticate(payload views.UserLoginDTO) (*db.User, error) {
+func (m *MockAuthService) Authenticate(payload dto.UserLoginDTO) (*db.User, error) {
 	return &db.User{}, nil
 }
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"main/internal/views"
+	"main/internal/views/dto"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -27,18 +28,57 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (s *Server) registerLoggedInRoutes(group *echo.Group) {
 	group.GET("/", s.handleDashboard)
-	group.GET("/testing/", s.handleTest)
+	group.POST("/create-note/", s.handleCreateNote)
+
 }
-func (s *Server) handleTest(c echo.Context) error {
-	component := views.Dashboard()
-	base := views.Base(component)
-	renderComponent(base, c)
-	return nil
+func (s *Server) handleCreateNote(c echo.Context) error {
+	sp, err := s.sessionService.ReadSession(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
+
+	}
+
+	var notePayload dto.CreateNoteDTO
+
+	if err := c.Bind(&notePayload); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	// csrf_value := getCSRFValueFromContext(c)
+	if err := c.Validate(notePayload); err != nil {
+
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+
+	}
+
+	logrus.WithField("Note:", notePayload).Info("Crearting....")
+
+	// prob don't need to pass in ref hjere?
+	_, err = s.notesService.CreateNewNote(sp.UserId, &notePayload)
+	if err != nil {
+		logrus.Error("Error in creating note")
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	// full redirect back to home
+	return c.Redirect(http.StatusFound, "/dashboard")
+
 }
 
 // will be the main page of the system
 func (s *Server) handleDashboard(c echo.Context) error {
-	component := views.Dashboard()
+	// find our logged in user to get their personal notes
+	sp, err := s.sessionService.ReadSession(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read session")
+
+	}
+
+	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
+	}
+	csrf_value := getCSRFValueFromContext(c)
+	component := views.Dashboard(csrf_value, userNotes)
 	base := views.Base(component)
 	renderComponent(base, c)
 	return nil

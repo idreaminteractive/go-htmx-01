@@ -1,4 +1,4 @@
-package views
+package dto
 
 type UserLoginDTO struct {
 	Email    string `form:"email" validate:"required,email"`
