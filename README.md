@@ -7,9 +7,8 @@ A fancy Todo app
 
 ## Todo
 
-- Update db schema to be notes instead of todos
-- Creating Notes from Dashboard
-- Setting Note as public or private
+- A proper CICD
+- Updating Notes as public or private
 - Editing notes
 - Deleting notes
 - Public view on root route

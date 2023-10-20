@@ -4,7 +4,7 @@ FROM golang:1.20 AS builder
 WORKDIR /src/project
 COPY . .
 # need to install + build templ BEFORE compiling ze go.
-
+# need to sqlc here too!
 
 # should prob read up on this
 RUN go build -buildvcs=false -ldflags "-s -w -extldflags '-static'" -tags osusergo,netgo -o /usr/local/bin/go-htmlx ./cmd/main.go
