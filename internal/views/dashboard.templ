@@ -15,7 +15,9 @@ templ Dashboard(csrf string, notes *[]db.ListNotesForUserRow) {
 		</div>
 		<div class="mt-4">
 			<h1 class="text-xl">Your notes</h1>
-			if (*notes)[0].Count > 10 {
+			if len(*notes) == 0 {
+				<div>You have no notes!</div>
+			} else if (*notes)[0].Count > 10 {
 				<div>Showing 10 of { fmt.Sprintf("%d",  (*notes)[0].Count) }</div>
 			}
 			<div class="flex flex-col gap-2">

@@ -50,3 +50,11 @@ tasks:
   migrate:
     cmds:
       - goose -dir migrations sqlite3 /litefs/potato.db up
+
+  docker-build:
+    cmds:
+      - DOCKER_BUILDKIT=1 docker build -t latest .
+
+  docker-run:
+    cmds:
+      - docker run -p 8080:8080 -it --rm --device /dev/fuse --cap-add SYS_ADMIN latest
