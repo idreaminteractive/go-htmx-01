@@ -10,6 +10,7 @@ A fancy Todo app
 - Updating Notes as public or private
 - Editing notes
 - Deleting notes
+- Refactor!
 - Add some cleanup and better handling of error states, etc.
 - Bring in some HTMX goodness
 - Public view on root route
