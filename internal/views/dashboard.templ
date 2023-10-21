@@ -13,30 +13,42 @@ templ Dashboard(csrf string, notes *[]db.ListNotesForUserRow) {
 		<div class="max-w-xs">
 			@CreateNoteForm(csrf)
 		</div>
-		<div class="mt-4">
-			<h1 class="text-xl">Your notes</h1>
-			if len(*notes) == 0 {
-				<div>You have no notes!</div>
-			} else if (*notes)[0].Count > 10 {
-				<div>Showing 10 of { fmt.Sprintf("%d",  (*notes)[0].Count) }</div>
+		@NotesListing(notes)
+	</div>
+}
+
+templ NotesListing(notes *[]db.ListNotesForUserRow) {
+	<div id="note-listing" class="mt-4">
+		<h1 class="text-xl">Your notes</h1>
+		if len(*notes) == 0 {
+			<div>You have no notes!</div>
+		} else if (*notes)[0].Count > 10 {
+			<div>Showing 10 of { fmt.Sprintf("%d",  (*notes)[0].Count) }</div>
+		}
+		<div class="flex flex-col gap-2">
+			for _, item := range *notes {
+				<div class="shadow rounded-xl border-2 p-3 w-96">
+					<div>Note Id: { fmt.Sprintf("%d", item.ID) }</div>
+					<div class="prose">{ item.Content }</div>
+					<div>Updated At: { item.UpdatedAt.Format("2006-01-02 3:4:5 pm") }</div>
+					<div>Public? { fmt.Sprintf("%t",  item.IsPublic) }</div>
+				</div>
 			}
-			<div class="flex flex-col gap-2">
-				for _, item := range *notes {
-					<div class="shadow rounded-xl border-2 p-3 w-96">
-						<div>Note Id: { fmt.Sprintf("%d", item.ID) }</div>
-						<div class="prose">{ item.Content }</div>
-						<div>Updated At: { item.UpdatedAt.Format("2006-01-02 3:4:5 pm") }</div>
-						<div>Public? { fmt.Sprintf("%t",  item.IsPublic) }</div>
-					</div>
-				}
-			</div>
 		</div>
 	</div>
 }
 
 templ CreateNoteForm(csrf string) {
 	<h2>Create New Note</h2>
-	<form method="post" action="/dashboard/create-note/">
+	<form
+ 		method="post"
+ 		action="/dashboard/create-note"
+ 		hx-target="#note-listing"
+ 		hx-select="#note-listing"
+ 		hx-swap="outerHTML show:no-scroll"
+		
+		_="on htmx:afterRequest reset() me"
+	>
 		@csrfInput(csrf)
 		<textarea name="content" class="textarea textarea-bordered textarea-lg w-full" placeholder="Content for your new note!"></textarea>
 		<div class="form-control ">

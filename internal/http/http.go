@@ -6,6 +6,7 @@ import (
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
+	"strings"
 
 	"net/http"
 	"time"
@@ -45,7 +46,12 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
-	e.Pre(middleware.AddTrailingSlash())
+	e.Pre(middleware.AddTrailingSlashWithConfig(middleware.TrailingSlashConfig{
+		Skipper: func(c echo.Context) bool {
+			// skip middleware on static
+			return strings.HasPrefix(c.Request().URL.Path, "/static")
+
+		}}))
 	gob.Register(services.SessionPayload{})
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 

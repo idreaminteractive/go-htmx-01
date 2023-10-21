@@ -20,7 +20,7 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		if sess.UserId == 0 {
 			logrus.Error("Not logged in")
-			return c.Redirect(http.StatusMovedPermanently, "/login")
+			return c.Redirect(http.StatusFound, "/login")
 		}
 		return next(c)
 	}
@@ -59,8 +59,19 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
+	// return our notes template w/ htmx ONLY...
+	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
+	}
+	component := views.NotesListing(userNotes)
+	c.Response().Header().Set("HX-Push-Url", "/dashboard")
+	renderComponent(component, c)
+
+	return nil
+
 	// full redirect back to home
-	return c.Redirect(http.StatusFound, "/dashboard")
+	// return c.Redirect(http.StatusFound, "/dashboard")
 
 }
 
