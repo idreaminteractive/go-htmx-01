@@ -11,10 +11,10 @@ import (
 
 func (s *Server) registerPublicRoutes() {
 	s.echo.GET("/", s.handleHomeGet)
-	s.echo.GET("/login/", s.handleLoginGet)
-	s.echo.POST("/login/", s.handleLoginPost)
+	s.echo.GET("/login", s.handleLoginGet)
+	s.echo.POST("/login", s.handleLoginPost)
 
-	s.echo.GET("/logout/", s.handleLogout)
+	s.echo.GET("/logout", s.handleLogout)
 }
 
 func (s *Server) handleLogout(c echo.Context) error {

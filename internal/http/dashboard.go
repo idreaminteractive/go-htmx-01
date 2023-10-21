@@ -28,7 +28,7 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (s *Server) registerLoggedInRoutes(group *echo.Group) {
 	group.GET("/", s.handleDashboard)
-	group.POST("/create-note/", s.handleCreateNote)
+	group.POST("/create-note", s.handleCreateNote)
 
 }
 func (s *Server) handleCreateNote(c echo.Context) error {

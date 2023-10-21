@@ -74,7 +74,7 @@ func (s *ServiceTestSuite) TestGetLogin() {
 
 func (s *ServiceTestSuite) TestPostLogin_MissingFields() {
 	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
-	e.POST("/login/", s.server.handleLoginPost)
+	e.POST("/login", s.server.handleLoginPost)
 	f := make(url.Values)
 	f.Set("csrf", "stuff")
 	f.Set("password", faker.Password())
@@ -91,7 +91,7 @@ func (s *ServiceTestSuite) TestPostLogin_MissingFields() {
 
 func (s *ServiceTestSuite) TestPostLogin_InvalidData() {
 	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
-	e.POST("/login/", s.server.handleLoginPost)
+	e.POST("/login", s.server.handleLoginPost)
 	f := make(url.Values)
 	f.Set("password", faker.Password())
 	f.Set("email", "not an email")
@@ -107,7 +107,7 @@ func (s *ServiceTestSuite) TestPostLogin_InvalidData() {
 
 func (s *ServiceTestSuite) TestPostLogin_HappyPath() {
 	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
-	e.POST("/login/", s.server.handleLoginPost)
+	e.POST("/login", s.server.handleLoginPost)
 	f := make(url.Values)
 	f.Set("password", faker.Password())
 	f.Set("email", faker.Email())

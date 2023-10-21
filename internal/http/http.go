@@ -6,7 +6,6 @@ import (
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
-	"strings"
 
 	"net/http"
 	"time"
@@ -46,12 +45,12 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
-	e.Pre(middleware.AddTrailingSlashWithConfig(middleware.TrailingSlashConfig{
-		Skipper: func(c echo.Context) bool {
-			// skip middleware on static
-			return strings.HasPrefix(c.Request().URL.Path, "/static")
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.Recover())
+	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
+	//     rate.Limit(20),
+	// )))
 
-		}}))
 	gob.Register(services.SessionPayload{})
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
@@ -94,8 +93,8 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	e.Static("/static", "static")
 
 	// health check routes
-	e.HEAD("/_health/", s.healthCheckRoute)
-	e.GET("/_health/", s.healthCheckRoute)
+	e.HEAD("/_health", s.healthCheckRoute)
+	e.GET("/_health", s.healthCheckRoute)
 
 	s.registerPublicRoutes()
 
