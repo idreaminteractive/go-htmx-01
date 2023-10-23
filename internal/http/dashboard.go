@@ -11,11 +11,10 @@ import (
 
 func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		logrus.Info("Check")
 		sess, err := s.sessionService.ReadSession(c)
 		if err != nil {
 			logrus.WithField("err", err).Error("Error in getting session")
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusUnauthorized, err)
 		}
 
 		if sess.UserId == 0 {
@@ -28,9 +27,11 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (s *Server) registerLoggedInRoutes(group *echo.Group) {
 	group.GET("/", s.handleDashboard)
-	group.POST("/create-note", s.handleCreateNote)
+	group.POST("/note", s.handleCreateNote)
+	group.DELETE("/note/:id", s.handleDeleteNote)
 
 }
+
 func (s *Server) handleCreateNote(c echo.Context) error {
 	sp, err := s.sessionService.ReadSession(c)
 	if err != nil {
@@ -58,6 +59,33 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 		logrus.Error("Error in creating note")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+
+	// return our notes template w/ htmx ONLY...
+	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
+	}
+	component := views.NotesListing(userNotes)
+	c.Response().Header().Set("HX-Push-Url", "/dashboard")
+	renderComponent(component, c)
+
+	// use a 303 redirect to re-get stuff
+
+	return nil
+
+	// full redirect back to home
+	// return c.Redirect(http.StatusFound, "/dashboard")
+
+}
+
+func (s *Server) handleDeleteNote(c echo.Context) error {
+	sp, err := s.sessionService.ReadSession(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
+
+	}
+
+	// todo-  delete the note + return the notes list remaining
 
 	// return our notes template w/ htmx ONLY...
 	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
