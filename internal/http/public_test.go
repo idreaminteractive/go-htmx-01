@@ -62,9 +62,9 @@ func (s *ServiceTestSuite) SetupTest() {
 // left off here. echo is setup + we need to setup routes!
 func (s *ServiceTestSuite) TestGetLogin() {
 	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
-	e.GET("/login/", s.server.handleLoginGet)
+	e.GET("/login", s.server.handleLoginGet)
 
-	req := httptest.NewRequest(http.MethodGet, "/login/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/login", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -76,7 +76,7 @@ func (s *ServiceTestSuite) TestPostLogin_MissingFields() {
 	e := setupEcho(EchoSetupStruct{DisableCSRF: true})
 	e.POST("/login", s.server.handleLoginPost)
 	f := make(url.Values)
-	f.Set("csrf", "stuff")
+
 	f.Set("password", faker.Password())
 	// f.Set("email", "not an email")
 	req := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(f.Encode()))
