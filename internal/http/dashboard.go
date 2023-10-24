@@ -2,7 +2,7 @@ package http
 
 import (
 	"main/internal/views"
-	"main/internal/views/dto"
+
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,6 +11,7 @@ import (
 
 func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+
 		sess, err := s.sessionService.ReadSession(c)
 		if err != nil {
 			logrus.WithField("err", err).Error("Error in getting session")
@@ -21,90 +22,26 @@ func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			logrus.Error("Not logged in")
 			return c.Redirect(http.StatusFound, "/login")
 		}
+
+		// for _, val := range c.Echo().Router().Routes() {
+		// 	logrus.WithField("val", val).Info("I should goto thing?")
+		// }
+
 		return next(c)
 	}
 }
 
 func (s *Server) registerLoggedInRoutes(group *echo.Group) {
-	group.GET("/", s.handleDashboard)
-	group.POST("/note", s.handleCreateNote)
-	group.DELETE("/note/:id", s.handleDeleteNote)
+	group.GET("", s.handleDashboard)
+	noteGroup := group.Group("/note")
 
-}
-
-func (s *Server) handleCreateNote(c echo.Context) error {
-	sp, err := s.sessionService.ReadSession(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
-
-	}
-
-	var notePayload dto.CreateNoteDTO
-
-	if err := c.Bind(&notePayload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	// csrf_value := getCSRFValueFromContext(c)
-	if err := c.Validate(notePayload); err != nil {
-
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-
-	}
-
-	logrus.WithField("Note:", notePayload).Info("Crearting....")
-
-	// prob don't need to pass in ref hjere?
-	_, err = s.notesService.CreateNewNote(sp.UserId, &notePayload)
-	if err != nil {
-		logrus.Error("Error in creating note")
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-
-	// return our notes template w/ htmx ONLY...
-	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
-	}
-	component := views.NotesListing(userNotes)
-	c.Response().Header().Set("HX-Push-Url", "/dashboard")
-	renderComponent(component, c)
-
-	// use a 303 redirect to re-get stuff
-
-	return nil
-
-	// full redirect back to home
-	// return c.Redirect(http.StatusFound, "/dashboard")
-
-}
-
-func (s *Server) handleDeleteNote(c echo.Context) error {
-	sp, err := s.sessionService.ReadSession(c)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
-
-	}
-
-	// todo-  delete the note + return the notes list remaining
-
-	// return our notes template w/ htmx ONLY...
-	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
-	}
-	component := views.NotesListing(userNotes)
-	c.Response().Header().Set("HX-Push-Url", "/dashboard")
-	renderComponent(component, c)
-
-	return nil
-
-	// full redirect back to home
-	// return c.Redirect(http.StatusFound, "/dashboard")
+	s.registerNoteRoutes(noteGroup)
 
 }
 
 // will be the main page of the system
 func (s *Server) handleDashboard(c echo.Context) error {
+
 	// find our logged in user to get their personal notes
 	sp, err := s.sessionService.ReadSession(c)
 	if err != nil {
@@ -117,8 +54,8 @@ func (s *Server) handleDashboard(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
 	}
 	csrf_value := getCSRFValueFromContext(c)
-	component := views.Dashboard(csrf_value, userNotes)
-	base := views.Base(component)
+	component := views.Dashboard(userNotes)
+	base := views.Base(component, csrf_value)
 	renderComponent(base, c)
 	return nil
 }

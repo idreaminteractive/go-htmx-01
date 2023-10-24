@@ -10,14 +10,13 @@ templ LoginPage(csrf string, previousEntry dto.UserLoginDTO, errors dto.UserLogi
 					Login
 				</h1>
 			</div>
-			@LoginForm(csrf, previousEntry, errors)
+			@LoginForm( previousEntry, errors)
 		</div>
 	</div>
 }
 
-templ LoginForm (csrf string, previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
-	<form  method="post" action="/login"  class="group">
-		@csrfInput(csrf)
+templ LoginForm (previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
+	<form method="post" action="/login" hx-push-url="true" class="group">
 		<div class="space-y-4">
 			<div class="space-y-2">
 				<div class="form-control w-full max-w-xs">

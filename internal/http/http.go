@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/sessions"
 )
@@ -61,7 +62,8 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(middleware.Recover())
 	if !config.DisableCSRF {
 		e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-			TokenLookup: "form:csrf",
+			TokenLookup: "header:X-CSRFToken",
+			// X-CSRFToken
 		}))
 
 	}
@@ -102,6 +104,12 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	loggedInGroup.Use(s.requireAuth)
 
 	s.registerLoggedInRoutes(loggedInGroup)
+
+	// print the routes
+	for _, item := range e.Router().Routes() {
+		logrus.WithField("r", item).Info("")
+	}
+
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {

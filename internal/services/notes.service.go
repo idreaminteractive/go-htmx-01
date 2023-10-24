@@ -36,3 +36,14 @@ func (ns *NotesService) CreateNewNote(userId int, dto *dto.CreateNoteDTO) (*db.N
 	}
 	return &note, nil
 }
+
+func (ns *NotesService) DeleteNote(userId int, noteId int) error {
+	// check and make sure the user owns the note
+
+	ctx := context.Background()
+	err := ns.queries.DeleteNote(ctx, int64(noteId))
+	if err != nil {
+		return Errorf(EINTERNAL, "Error when running query %v", err)
+	}
+	return nil
+}
