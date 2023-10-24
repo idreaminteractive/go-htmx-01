@@ -69,6 +69,26 @@ func (ns *NotesService) GetNotesForUserId(userId int) (*[]db.ListNotesForUserRow
 	return &notes, nil
 }
 
+func (ns *NotesService) GetNoteById(userId, noteId int) (*db.Note, error) {
+	ctx := context.Background()
+	note, err := ns.queries.GetNoteById(ctx, int64(noteId))
+	if err != nil {
+		return nil, Errorf(EINTERNAL, "Error when running query %v", err)
+	}
+
+	return &note, nil
+}
+
+func (ns *NotesService) UpdateNote(userId, noteId int, dto *dto.UpdateNoteDTO) error {
+
+	ctx := context.Background()
+	err := ns.queries.UpdateNote(ctx, db.UpdateNoteParams{ID: int64(noteId), Content: dto.Content, IsPublic: dto.IsPublic == "on"})
+	if err != nil {
+		return Errorf(EINTERNAL, "Error when updating note %v", err)
+	}
+	return nil
+}
+
 func (ns *NotesService) GetPublicNotes() (*[]db.GetPublicNotesRow, error) {
 	ctx := context.Background()
 	notes, err := ns.queries.GetPublicNotes(ctx)

@@ -2,7 +2,6 @@ package views
 
 import "main/internal/db"
 
-import "fmt"
 
 templ Dashboard( notes *[]db.ListNotesForUserRow) {
 	<div class="container mx-auto">
@@ -15,58 +14,4 @@ templ Dashboard( notes *[]db.ListNotesForUserRow) {
 		</div>
 		@NotesListing(notes)
 	</div>
-}
-
-templ NotesListing(notes *[]db.ListNotesForUserRow) {
-	<div id="note-listing" class="mt-4">
-		<h1 class="text-xl">Your notes</h1>
-		if len(*notes) == 0 {
-			<div>You have no notes!</div>
-		} else if (*notes)[0].Count > 10 {
-			<div>Showing 10 of { fmt.Sprintf("%d",  (*notes)[0].Count) }</div>
-		}
-		<div class="flex flex-col gap-2">
-			for _, item := range *notes {
-				<div class="shadow rounded-xl border-2 p-3 w-96">
-					<div>Note Id: { fmt.Sprintf("%d", item.ID) }</div>
-					<div class="prose">{ item.Content }</div>
-					<div>Updated At: { item.UpdatedAt.Format("2006-01-02 3:4:5 pm") }</div>
-					<div>Public? { fmt.Sprintf("%t",  item.IsPublic) }</div>
-					<div>
-						<button
- 							hx-delete={ fmt.Sprintf("/dashboard/note/%d", item.ID) }
- 							hx-push-url="true"
-							hx-swap="outerHTML"
-							hx-target="#note-listing"
- 							hx-confirm="Are you sure you want to delete this note?"
- 							class="btn btn-warning"
-						>
-							Delete Note
-						</button>
-					</div>
-				</div>
-			}
-		</div>
-	</div>
-}
-
-templ CreateNoteForm() {
-	<h2>Create New Note</h2>
-	<form
- 		method="post"
- 		action="/dashboard/note"
- 		hx-target="#note-listing"
- 		hx-swap="outerHTML show:no-scroll"
- 		_="on htmx:afterRequest reset() me"
-	>
-		
-		<textarea name="content" class="textarea textarea-bordered textarea-lg w-full" placeholder="Content for your new note!"></textarea>
-		<div class="form-control ">
-			<label class="label cursor-pointer">
-				<span class="label-text">Make Public</span>
-				<input type="checkbox" name="is_public" class="toggle toggle-primary"/>
-			</label>
-		</div>
-		<button type="submit" class="btn btn-primary">Create</button>
-	</form>
 }
