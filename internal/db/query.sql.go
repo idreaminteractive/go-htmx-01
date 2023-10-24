@@ -129,6 +129,50 @@ func (q *Queries) GetNoteById(ctx context.Context, id int64) (Note, error) {
 	return i, err
 }
 
+const getPublicNotes = `-- name: GetPublicNotes :many
+select n.id, n.content, u.id, n.updated_at, u.email
+from note n, user u 
+where 
+  n.user_id = u.id and n.is_public = true
+`
+
+type GetPublicNotesRow struct {
+	ID        int64
+	Content   string
+	ID_2      int64
+	UpdatedAt time.Time
+	Email     string
+}
+
+func (q *Queries) GetPublicNotes(ctx context.Context) ([]GetPublicNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPublicNotes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPublicNotesRow
+	for rows.Next() {
+		var i GetPublicNotesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.ID_2,
+			&i.UpdatedAt,
+			&i.Email,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 select id, first_name, last_name, password, email from user 
 where email = ? limit 1
@@ -145,6 +189,59 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 	)
 	return i, err
+}
+
+const getUserNoteAggregate = `-- name: GetUserNoteAggregate :many
+select
+  user.id,
+  user.email,
+  json_group_array(json_object(
+    'note_id', note.id,
+    'content', note.content
+   )) as notes,
+   count(*) as num_notes
+from
+  user join note on note.user_id = user.id
+  group by user.id
+order by
+  user.id
+limit
+  10
+`
+
+type GetUserNoteAggregateRow struct {
+	ID       int64
+	Email    string
+	Notes    interface{}
+	NumNotes int64
+}
+
+func (q *Queries) GetUserNoteAggregate(ctx context.Context) ([]GetUserNoteAggregateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserNoteAggregate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserNoteAggregateRow
+	for rows.Next() {
+		var i GetUserNoteAggregateRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Notes,
+			&i.NumNotes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listNotes = `-- name: ListNotes :many

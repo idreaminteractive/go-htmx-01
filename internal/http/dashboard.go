@@ -53,6 +53,7 @@ func (s *Server) handleDashboard(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
 	}
+
 	csrf_value := getCSRFValueFromContext(c)
 	component := views.Dashboard(userNotes)
 	base := views.Base(component, csrf_value)

@@ -27,8 +27,15 @@ func (s *Server) handleLogout(c echo.Context) error {
 // will be the main page of the system
 // let's mirror our current live version that pulls in the stuff
 func (s *Server) handleHomeGet(c echo.Context) error {
-	csrf_value := getCSRFValueFromContext(c)
-	renderComponent(views.Base(views.Home(), csrf_value), c)
+
+	// get our public notes
+	if notes, err := s.notesService.GetPublicNotes(); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	} else {
+		csrf_value := getCSRFValueFromContext(c)
+		renderComponent(views.Base(views.Home(notes), csrf_value), c)
+	}
+
 	return nil
 }
 
