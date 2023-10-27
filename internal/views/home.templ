@@ -4,8 +4,8 @@ import "strings"
 
 import (
 	"main/internal/db"
- "fmt"
- )
+	"fmt"
+)
 
 templ Home(notes *[]db.GetPublicNotesRow) {
 	<header data-testid="headerTemplate">
@@ -18,6 +18,7 @@ templ Home(notes *[]db.GetPublicNotesRow) {
 templ PublicNotesListing(notes *[]db.GetPublicNotesRow) {
 	<div id="note-listing" class="mt-4">
 		<h1 class="text-xl">Most recent public notes</h1>
+		<div hx-sse="connect:/events swap:message"></div>
 		if len(*notes) == 0 {
 			<div>There are no public notes</div>
 		}
@@ -27,8 +28,7 @@ templ PublicNotesListing(notes *[]db.GetPublicNotesRow) {
 					<div>Note Id: { fmt.Sprintf("%d", item.ID) }</div>
 					<div class="prose">{ item.Content }</div>
 					<div>Updated At: { item.UpdatedAt.Format("2006-01-02 3:4:5 pm") }</div>
-					<div>Created By: { strings.Split(item.Email, "@")[0]}</div>
-					
+					<div>Created By: { strings.Split(item.Email, "@")[0] }</div>
 				</div>
 			}
 		</div>

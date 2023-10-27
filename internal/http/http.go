@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
@@ -42,10 +43,38 @@ type EchoSetupStruct struct {
 	DisableCSRF bool
 }
 
+func handleSSE(c echo.Context) error {
+	c.Response().Header().Set("Content-Type", "text/event-stream")
+	c.Response().Header().Set("Cache-Control", "no-cache")
+	c.Response().Header().Set("Connection", "keep-alive")
+
+	// A function to send SSE messages to the client
+	sendSSE := func(data string) {
+		c.Response().Write([]byte("data: " + data + "\n\n"))
+		c.Response().Flush()
+	}
+
+	// Simulate sending SSE messages (replace with your data source)
+	go func() {
+		for {
+			sendSSE(fmt.Sprintf("<div>HTML @ %v</div>", time.Now().Format("20060102150405")))
+			// You can replace this with actual data or events
+			// Sleep for some time to simulate events
+			time.Sleep(2 * time.Second)
+		}
+	}()
+
+	// Ensure the connection remains open
+	<-c.Request().Context().Done()
+	return nil
+}
+
 func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
+	// let's try sth different!
+	e.GET("/events", handleSSE)
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
