@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/sessions"
 )
@@ -45,7 +46,12 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
-	e.Pre(middleware.AddTrailingSlash())
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.Recover())
+	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
+	//     rate.Limit(20),
+	// )))
+
 	gob.Register(services.SessionPayload{})
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
@@ -56,7 +62,8 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(middleware.Recover())
 	if !config.DisableCSRF {
 		e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-			TokenLookup: "form:csrf",
+			TokenLookup: "header:X-CSRFToken",
+			// X-CSRFToken
 		}))
 
 	}
@@ -88,8 +95,8 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	e.Static("/static", "static")
 
 	// health check routes
-	e.HEAD("/_health/", s.healthCheckRoute)
-	e.GET("/_health/", s.healthCheckRoute)
+	e.HEAD("/_health", s.healthCheckRoute)
+	e.GET("/_health", s.healthCheckRoute)
 
 	s.registerPublicRoutes()
 
@@ -97,6 +104,12 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	loggedInGroup.Use(s.requireAuth)
 
 	s.registerLoggedInRoutes(loggedInGroup)
+
+	// print the routes
+	for _, item := range e.Router().Routes() {
+		logrus.WithField("r", item).Info("")
+	}
+
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {

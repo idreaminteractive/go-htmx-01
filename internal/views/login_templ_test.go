@@ -15,7 +15,7 @@ func TestViewLoginForm_Get(t *testing.T) {
 	r, w := io.Pipe()
 
 	go func() {
-		_ = LoginForm("", dto.UserLoginDTO{}, dto.UserLoginFormErrors{}).Render(context.Background(), w)
+		_ = LoginForm(dto.UserLoginDTO{}, dto.UserLoginFormErrors{}).Render(context.Background(), w)
 		_ = w.Close()
 	}()
 	doc, err := goquery.NewDocumentFromReader(r)
@@ -44,7 +44,7 @@ func TestViewLoginForm_WithErrors(t *testing.T) {
 
 	go func() {
 
-		_ = LoginForm("", dto.UserLoginDTO{Email: prefilled}, dto.UserLoginFormErrors{Message: "Error in post"}).Render(context.Background(), w)
+		_ = LoginForm(dto.UserLoginDTO{Email: prefilled}, dto.UserLoginFormErrors{Message: "Error in post"}).Render(context.Background(), w)
 		_ = w.Close()
 	}()
 	doc, err := goquery.NewDocumentFromReader(r)

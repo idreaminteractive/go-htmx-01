@@ -11,7 +11,7 @@ tasks:
     cmds:
       - templ generate && go build -o ./tmp/main ./cmd/main.go
 
-  testall:
+  test:
     cmds:
       - go test -v ./...
 

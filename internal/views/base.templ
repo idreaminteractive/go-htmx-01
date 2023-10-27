@@ -1,7 +1,7 @@
 package views
 
-// page wrapper for the site
-templ Base(body templ.Component) {
+import "fmt"
+templ Base(body templ.Component, csrfValue string) {
 	<!DOCTYPE html>
 	<html data-theme="corporate">
 		<head>
@@ -9,10 +9,10 @@ templ Base(body templ.Component) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link href="/static/css/styles.css" rel="stylesheet"/>
 			<script type="text/javascript" src="/static/js/htmx.min.js"></script>
+			<script type="text/javascript" src="/static/js/hyperscript.min.js"></script>
 		</head>
-		<body>
+		<body hx-headers={ fmt.Sprintf("{\"X-CSRFToken\": \"%s\"}", csrfValue) } hx-boost="true">
 			{! body }
 		</body>
 	</html>
 }
-

@@ -2,22 +2,21 @@ package views
 
 import "main/internal/views/dto"
 
-templ LoginPage(csrf string, previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
-	<div class=" min-h-screen flex items-center justify-center">
+templ LoginPage(previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
+	<div class="min-h-screen flex items-center justify-center">
 		<div class="max-w-sm rounded-lg shadow-lg  p-6 space-y-6 border  border-gray-200">
 			<div class="space-y-2 text-center">
 				<h1 class="text-3xl font-bold">
 					Login
 				</h1>
 			</div>
-			@LoginForm(csrf, previousEntry, errors)
+			@LoginForm( previousEntry, errors)
 		</div>
 	</div>
 }
 
-templ LoginForm (csrf string, previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
-	<form hx-post="/login" action="post" method="/login" class="group">
-		@csrfInput(csrf)
+templ LoginForm (previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
+	<form method="post" action="/login" hx-push-url="true" class="group">
 		<div class="space-y-4">
 			<div class="space-y-2">
 				<div class="form-control w-full max-w-xs">
