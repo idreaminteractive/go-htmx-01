@@ -7,12 +7,13 @@ A fancy Todo app
 
 ## Todo
 
+
 - Updating Notes as public or private
 - Editing notes
-- Refactor!
 - Add some cleanup and better handling of error states, etc.
-- Bring in some HTMX goodness
 - SSE with some neat stuff
+- Semantic layout, styling, UX and better test coverage.
+- GH Action setup for CICD
 
 
 
