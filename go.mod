@@ -3,7 +3,7 @@ module main
 go 1.20
 
 require (
-	github.com/a-h/templ v0.2.408
+	github.com/a-h/templ v0.2.432
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/go-faker/faker/v4 v4.1.1
 	github.com/go-playground/validator v9.31.0+incompatible

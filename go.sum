@@ -1,7 +1,7 @@
 github.com/PuerkitoBio/goquery v1.8.1 h1:uQxhNlArOIdbrH1tr0UXwdVFgDcZDrZVdcpygAcwmWM=
 github.com/PuerkitoBio/goquery v1.8.1/go.mod h1:Q8ICL1kNUJ2sXGoAhPGUdYDJvgQgHzJsnnd3H7Ho5jQ=
-github.com/a-h/templ v0.2.408 h1:WmXdjVjxjMJyjRg+34cgg+hRC0duDg9OJy6euZbS4ek=
-github.com/a-h/templ v0.2.408/go.mod h1:6Lfhsl3Z4/vXl7jjEjkJRCqoWDGjDnuKgzjYMDSddas=
+github.com/a-h/templ v0.2.432 h1:/8sSs0janzx/DvXlYi+3KUkZABvm7s3lejbvhPZ1rSg=
+github.com/a-h/templ v0.2.432/go.mod h1:6Lfhsl3Z4/vXl7jjEjkJRCqoWDGjDnuKgzjYMDSddas=
 github.com/andybalholm/cascadia v1.3.1 h1:nhxRkql1kdYCc8Snf7D5/D3spOX+dBgjA6u8x004T2c=
 github.com/andybalholm/cascadia v1.3.1/go.mod h1:R4bJ1UQfqADjvDa4P6HZHLh/3OxWWEqc0Sk8XGwHqvA=
 github.com/caarlos0/env/v9 v9.0.0 h1:SI6JNsOA+y5gj9njpgybykATIylrRMklbs5ch6wO6pc=
