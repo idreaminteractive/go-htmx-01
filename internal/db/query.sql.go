@@ -329,6 +329,7 @@ const updateNote = `-- name: UpdateNote :exec
 UPDATE note
 set content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
+RETURNING id, content, user_id, is_public, created_at, updated_at
 `
 
 type UpdateNoteParams struct {

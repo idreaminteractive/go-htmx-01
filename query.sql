@@ -24,7 +24,8 @@ RETURNING *;
 -- name: UpdateNote :exec
 UPDATE note
 set content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP
-WHERE id = ?;
+WHERE id = ?
+RETURNING *;
 
 -- name: DeleteNote :exec
 DELETE FROM note

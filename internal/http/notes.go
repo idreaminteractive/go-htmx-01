@@ -1,11 +1,13 @@
 package http
 
 import (
+	"fmt"
 	"main/internal/views"
 	"main/internal/views/dto"
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -23,31 +25,34 @@ func (s *Server) handlePutEditForm(c echo.Context) error {
 	sp, err := s.sessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
-
 	}
 
-	var notePayload dto.CreateNoteDTO
+	var notePayload dto.UpdateNoteDTO
 
 	if err := c.Bind(&notePayload); err != nil {
+
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	// csrf_value := getCSRFValueFromContext(c)
+
 	if err := c.Validate(notePayload); err != nil {
-
+		logrus.WithField("e", err).Error("Error on validate")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 
 	}
 
-	logrus.WithField("Note:", notePayload).Info("Crearting....")
-
-	// prob don't need to pass in ref hjere?
-	_, err = s.notesService.CreateNewNote(sp.UserId, &notePayload)
+	noteId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		logrus.Error("Error in creating note")
+
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	// prob don't need to pass in ref hjere?
+	err = s.notesService.UpdateNote(sp.UserId, noteId, &notePayload)
+	// note, we could target the individual note to show
+	if err != nil {
+		logrus.Error("Error in updating note")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	// return our notes template w/ htmx ONLY...
 	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
@@ -93,11 +98,28 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 	var notePayload dto.CreateNoteDTO
 
 	if err := c.Bind(&notePayload); err != nil {
+		logrus.WithField("e", err).Error("Error on bind")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	// csrf_value := getCSRFValueFromContext(c)
 	if err := c.Validate(notePayload); err != nil {
+		logrus.WithField("e", err).Error("Error on validate")
+		errs := err.(validator.ValidationErrors)
 
+		for _, e := range errs {
+			// can translate each error one at a time.
+			fmt.Printf("Namespace %v\n", e.Namespace())
+			fmt.Printf("Field %v\n", e.Field())
+			fmt.Printf("StructNamespace %v\n", e.StructNamespace())
+			fmt.Printf("StructField %v\n", e.StructField())
+			fmt.Printf("Tag %v\n", e.Tag())
+			fmt.Printf("ActualTag %v\n", e.ActualTag())
+			fmt.Printf("Type %v\n", e.Type())
+			fmt.Printf("Type %v\n", e.Type())
+			fmt.Printf("Value %v\n", e.Value())
+			fmt.Printf("Param %v\n", e.Param())
+			fmt.Println()
+		}
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 
 	}

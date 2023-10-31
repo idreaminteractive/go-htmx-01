@@ -7,6 +7,8 @@ import (
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
+	"reflect"
+	"strings"
 
 	"net/http"
 	"time"
@@ -74,7 +76,7 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
 	// let's try sth different!
-	e.GET("/events", handleSSE)
+	// e.GET("/events", handleSSE)
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
@@ -85,7 +87,15 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
 	e.Use(middleware.Gzip())
-	e.Validator = &CustomValidator{validator: validator.New()}
+	validate := validator.New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("form"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+	e.Validator = &CustomValidator{validator: validate}
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Recover())

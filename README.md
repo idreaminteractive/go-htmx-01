@@ -7,10 +7,10 @@ A fancy Todo app
 
 ## Todo
 
-
-- Updating Notes as public or private
-- Editing notes
-- Add some cleanup and better handling of error states, etc.
+- Form validations in a sane way
+    - look @ https://dev.to/thanhphuchuynh/customizing-error-messages-in-struct-validation-using-tags-in-go-4k0j 
+    - create a simple way to add in a field -> string + then can pass in errors per field
+- flash sessions
 - SSE with some neat stuff
 - Semantic layout, styling, UX and better test coverage.
 - GH Action setup for CICD

@@ -72,6 +72,7 @@ templ EditNoteForm(note *db.Note) {
  		hx-put={ fmt.Sprintf("/dashboard/note/%d/edit", note.ID) }
  		hx-target="this"
  		hx-swap="outerHTML"
+ 		hx-select={ fmt.Sprintf("#noteentry-%d", note.ID) }
 	>
 		<div class="w-96">
 			<textarea name="content" class="textarea textarea-bordered textarea-lg w-full">{ note.Content }</textarea>

@@ -86,6 +86,7 @@ func (ns *NotesService) UpdateNote(userId, noteId int, dto *dto.UpdateNoteDTO) e
 	if err != nil {
 		return Errorf(EINTERNAL, "Error when updating note %v", err)
 	}
+
 	return nil
 }
 
