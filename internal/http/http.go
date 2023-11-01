@@ -3,10 +3,7 @@ package http
 import (
 	"context"
 	"encoding/gob"
-	"errors"
 	"fmt"
-	"reflect"
-	"strings"
 
 	"main/internal/config"
 	"main/internal/db"
@@ -49,73 +46,6 @@ type EchoSetupStruct struct {
 	DisableCSRF bool
 }
 
-const tagCustom = "errmsg"
-
-func errorTagFunc[T interface{}](obj interface{}, snp string, fieldname, actualTag string) error {
-	o := obj.(T)
-	fmt.Printf("o - %v\n", o)
-	if !strings.Contains(snp, fieldname) {
-		fmt.Printf("Does not conainer, %v, %v\n", snp, fieldname)
-		return nil
-	}
-
-	fieldArr := strings.Split(snp, ".")
-	rsf := reflect.TypeOf(o)
-
-	for i := 1; i < len(fieldArr); i++ {
-		field, found := rsf.FieldByName(fieldArr[i])
-		if found {
-			if fieldArr[i] == fieldname {
-				customMessage := field.Tag.Get(tagCustom)
-				if customMessage != "" {
-					return fmt.Errorf("%s: %s (%s)", fieldname, customMessage, actualTag)
-				}
-				return nil
-			} else {
-				if field.Type.Kind() == reflect.Ptr {
-					// If the field type is a pointer, dereference it
-					rsf = field.Type.Elem()
-				} else {
-					rsf = field.Type
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func ValidateFunc[T interface{}](obj interface{}, validate *validator.Validate) (errs error) {
-	o := obj.(T)
-
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in Validate:", r)
-			errs = fmt.Errorf("can't validate %+v", r)
-		}
-	}()
-
-	if err := validate.Struct(o); err != nil {
-		errorValid := err.(validator.ValidationErrors)
-		for _, e := range errorValid {
-			// snp  X.Y.Z
-			snp := e.StructNamespace()
-			fmt.Printf("\n%v - %v - %v - %v\n", obj, snp, e.Field(), e.ActualTag())
-			errmgs := errorTagFunc[T](obj, snp, e.Field(), e.ActualTag())
-			if errmgs != nil {
-				errs = errors.Join(errs, fmt.Errorf("%w", errmgs))
-			} else {
-				errs = errors.Join(errs, fmt.Errorf("%w", e))
-			}
-		}
-	}
-
-	if errs != nil {
-		return errs
-	}
-
-	return nil
-}
-
 func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
@@ -135,16 +65,12 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(middleware.Gzip())
 	validate := validator.New()
 
-	note := dto.CreateNoteDTO{Content: "", IsPublic: "on"}
+	note := dto.CreateNoteDTO{Content: "1", IsPublic: "on"}
 	// set that we're looking for form
-
-	errs := note.Validate()
 	validation.ErrorTag = "form"
+	errs := note.Validate()
+
 	fmt.Printf("ERRS1: %+v\n", errs)
-	errs = note.Validate()
-	// fmt.Printf("")
-	// errs := ValidateFunc[dto.CreateNoteDTO](note, validate)
-	fmt.Printf("ERRS2: %+v\n", errs)
 	// validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 
 	// 	fmt.Printf("fld: %v\n", fld)

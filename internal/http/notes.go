@@ -112,9 +112,6 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 
 		fmt.Printf("Reflect: %v", rsf)
 		for _, e := range errs {
-			snp := e.StructNamespace()
-			errmgs := errorTagFunc[dto.CreateNoteDTO](notePayload, snp, e.Field(), e.ActualTag())
-			fmt.Printf("err %v\n", errmgs)
 			// can translate each error one at a time.
 			fmt.Printf("Namespace %v\n", e.Namespace())
 			fmt.Printf("Field %v\n", e.Field())
