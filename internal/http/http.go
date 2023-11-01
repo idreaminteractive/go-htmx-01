@@ -3,12 +3,10 @@ package http
 import (
 	"context"
 	"encoding/gob"
-	"fmt"
+
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
-	"reflect"
-	"strings"
 
 	"net/http"
 	"time"
@@ -45,32 +43,6 @@ type EchoSetupStruct struct {
 	DisableCSRF bool
 }
 
-func handleSSE(c echo.Context) error {
-	c.Response().Header().Set("Content-Type", "text/event-stream")
-	c.Response().Header().Set("Cache-Control", "no-cache")
-	c.Response().Header().Set("Connection", "keep-alive")
-
-	// A function to send SSE messages to the client
-	sendSSE := func(data string) {
-		c.Response().Write([]byte("data: " + data + "\n\n"))
-		c.Response().Flush()
-	}
-
-	// Simulate sending SSE messages (replace with your data source)
-	go func() {
-		for {
-			sendSSE(fmt.Sprintf("<div>HTML @ %v</div>", time.Now().Format("20060102150405")))
-			// You can replace this with actual data or events
-			// Sleep for some time to simulate events
-			time.Sleep(2 * time.Second)
-		}
-	}()
-
-	// Ensure the connection remains open
-	<-c.Request().Context().Done()
-	return nil
-}
-
 func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
@@ -88,13 +60,17 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 
 	e.Use(middleware.Gzip())
 	validate := validator.New()
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("form"), ",", 2)[0]
-		if name == "-" {
-			return ""
-		}
-		return name
-	})
+	// validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+
+	// 	fmt.Printf("fld: %v\n", fld)
+	// 	fmt.Printf("tag: %v\n", fld.Tag)
+	// 	name := strings.SplitN(fld.Tag.Get("form"), ",", 2)[0]
+	// 	if name == "-" {
+	// 		return ""
+	// 	}
+	// 	return name
+	// })
+
 	e.Validator = &CustomValidator{validator: validate}
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
