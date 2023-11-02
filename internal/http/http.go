@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"reflect"
 
 	"main/internal/config"
 	"main/internal/db"
@@ -65,12 +66,26 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(middleware.Gzip())
 	validate := validator.New()
 
-	note := dto.CreateNoteDTO{Content: "1", IsPublic: "on"}
+	note := dto.CreateNoteDTO{Content: "", IsPublic: "on"}
 	// set that we're looking for form
 	validation.ErrorTag = "form"
 	errs := note.Validate()
+	fmt.Println(reflect.TypeOf(errs))
+	if errs != nil {
+		// cast to validation errs + make sure it's good
+		terr := errs.(validation.Errors)
+		fmt.Println(terr["content"])
+		fmt.Println("------")
+		fmt.Println(terr["potato"])
+		fmt.Println("------")
+		// ok - les go + pass this in?
+		// for key, errObject := range terr {
+		// 	fmt.Println(key)
+		// 	fmt.Printf("%+v", errObject.(validation.Error).Error())
+		// }
 
-	fmt.Printf("ERRS1: %+v\n", errs)
+	}
+
 	// validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 
 	// 	fmt.Printf("fld: %v\n", fld)

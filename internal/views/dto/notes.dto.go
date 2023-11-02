@@ -14,7 +14,7 @@ type CreateNoteDTO struct {
 // we can pass into a form var to parse out properly + display as err messages
 func (a CreateNoteDTO) Validate() error {
 	return validation.ValidateStruct(&a,
-		validation.Field(&a.Content, validation.Required.Error("WWWWW"), validation.Length(4, 0).Error("ffsdf")),
+		validation.Field(&a.Content, validation.Required, validation.Length(1, 0)),
 		validation.Field(&a.IsPublic, validation.Required),
 	)
 }

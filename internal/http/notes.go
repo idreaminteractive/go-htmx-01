@@ -5,7 +5,6 @@ import (
 	"main/internal/views"
 	"main/internal/views/dto"
 	"net/http"
-	"reflect"
 	"strconv"
 
 	"github.com/go-playground/validator"
@@ -102,15 +101,17 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 		logrus.WithField("e", err).Error("Error on bind")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	// csrf_value := getCSRFValueFromContext(c)
+	// validate w/ ozzo
+	// if err := notePayload.Validate(); err != nil {
+	// 	fmt.Printf("\nNote:\n%+v\n%+v\n", notePayload, err)
+	// 	// errJson, _ := json.Marshal(err)
+
+	// }
 	if err := c.Validate(notePayload); err != nil {
 		logrus.WithField("e", err).Error("Error on validate")
 
 		/// do tiT?
 		errs := err.(validator.ValidationErrors)
-		rsf := reflect.TypeOf(notePayload)
-
-		fmt.Printf("Reflect: %v", rsf)
 		for _, e := range errs {
 			// can translate each error one at a time.
 			fmt.Printf("Namespace %v\n", e.Namespace())
