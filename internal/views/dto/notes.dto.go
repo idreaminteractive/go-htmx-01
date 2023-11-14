@@ -9,12 +9,12 @@ type CreateNoteDTO struct {
 	IsPublic string `form:"is_public"`
 }
 
-// create zod like rules?
-// i want this to be able to be parsed + built into something that
-// we can pass into a form var to parse out properly + display as err messages
+// Similar to zod stuff
 func (a CreateNoteDTO) Validate() error {
 	return validation.ValidateStruct(&a,
-		validation.Field(&a.Content, validation.Required, validation.Length(1, 0)),
+		validation.Field(&a.Content,
+			validation.Required.Error("Content is required"),
+			validation.Length(2, 0).Error("Content must be at least 2 characters")),
 		validation.Field(&a.IsPublic, validation.Required),
 	)
 }

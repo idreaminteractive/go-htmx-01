@@ -3,19 +3,16 @@ package http
 import (
 	"context"
 	"encoding/gob"
-	"fmt"
-	"reflect"
 
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
-	"main/internal/views/dto"
 
 	"net/http"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-playground/validator"
+
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -25,20 +22,14 @@ import (
 
 const ShutdownTimeout = 1 * time.Second
 
+// i want to
 type Server struct {
-	echo                  *echo.Echo
-	config                *config.EnvConfig
+	echo   *echo.Echo
+	config *config.EnvConfig
+
 	sessionService        services.ISessionService
 	authenticationService services.IAuthenticationService
 	notesService          *services.NotesService
-}
-type CustomValidator struct {
-	validator *validator.Validate
-}
-
-func (cv *CustomValidator) Validate(i interface{}) error {
-	// this is where we can write our custom overlap
-	return cv.validator.Struct(i)
 }
 
 type EchoSetupStruct struct {
@@ -52,8 +43,6 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
 
-	// let's try sth different!
-	// e.GET("/events", handleSSE)
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
@@ -64,42 +53,19 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
 	e.Use(middleware.Gzip())
-	validate := validator.New()
 
-	note := dto.CreateNoteDTO{Content: "", IsPublic: "on"}
 	// set that we're looking for form
 	validation.ErrorTag = "form"
-	errs := note.Validate()
-	fmt.Println(reflect.TypeOf(errs))
-	if errs != nil {
-		// cast to validation errs + make sure it's good
-		terr := errs.(validation.Errors)
-		fmt.Println(terr["content"])
-		fmt.Println("------")
-		fmt.Println(terr["potato"])
-		fmt.Println("------")
-		// ok - les go + pass this in?
-		// for key, errObject := range terr {
-		// 	fmt.Println(key)
-		// 	fmt.Printf("%+v", errObject.(validation.Error).Error())
-		// }
+	// errs := note.Validate()
 
-	}
+	// if errs != nil {
+	// 	terr := errs.(validation.Errors)
+	// 	fmt.Println(terr["content"])
+	// 	fmt.Println("------")
+	// 	fmt.Println(terr["potato"])
+	// 	fmt.Println("------")
 
-	// validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-
-	// 	fmt.Printf("fld: %v\n", fld)
-	// 	fmt.Printf("tag: %v\n", fld.Tag)
-	// 	name := strings.SplitN(fld.Tag.Get("form"), ",", 2)[0]
-	// 	if name == "-" {
-	// 		return ""
-	// 	}
-	// 	return name
-	// })
-
-	e.Validator = &CustomValidator{validator: validate}
-
-	// test out our validator systems.
+	// }
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())

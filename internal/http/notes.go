@@ -1,13 +1,11 @@
 package http
 
 import (
-	"fmt"
 	"main/internal/views"
 	"main/internal/views/dto"
 	"net/http"
 	"strconv"
 
-	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -100,34 +98,6 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 	if err := c.Bind(&notePayload); err != nil {
 		logrus.WithField("e", err).Error("Error on bind")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	// validate w/ ozzo
-	// if err := notePayload.Validate(); err != nil {
-	// 	fmt.Printf("\nNote:\n%+v\n%+v\n", notePayload, err)
-	// 	// errJson, _ := json.Marshal(err)
-
-	// }
-	if err := c.Validate(notePayload); err != nil {
-		logrus.WithField("e", err).Error("Error on validate")
-
-		/// do tiT?
-		errs := err.(validator.ValidationErrors)
-		for _, e := range errs {
-			// can translate each error one at a time.
-			fmt.Printf("Namespace %v\n", e.Namespace())
-			fmt.Printf("Field %v\n", e.Field())
-			fmt.Printf("StructNamespace %v\n", e.StructNamespace())
-			fmt.Printf("StructField %v\n", e.StructField())
-			fmt.Printf("Tag %v\n", e.Tag())
-			fmt.Printf("ActualTag %v\n", e.ActualTag())
-			fmt.Printf("Type %v\n", e.Type())
-			fmt.Printf("Type %v\n", e.Type())
-			fmt.Printf("Value %v\n", e.Value())
-			fmt.Printf("Param %v\n", e.Param())
-			fmt.Println()
-		}
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-
 	}
 
 	logrus.WithField("Note:", notePayload).Info("Crearting....")
