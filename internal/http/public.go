@@ -33,7 +33,15 @@ func (s *Server) handleHomeGet(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	} else {
 		csrf_value := getCSRFValueFromContext(c)
-		renderComponent(views.Base(views.Home(notes), csrf_value), c)
+		body := views.Home(views.HomePageData{Notes: notes})
+		renderComponent(
+			views.Base(
+				views.BaseData{
+					Body:  body,
+					CSRF:  csrf_value,
+					Title: "GoNotes",
+				}),
+			c)
 	}
 
 	return nil
@@ -80,7 +88,7 @@ func (s *Server) handleLoginGet(c echo.Context) error {
 	csrf_value := getCSRFValueFromContext(c)
 
 	component := views.LoginPage(dto.UserLoginDTO{}, dto.UserLoginFormErrors{})
-	base := views.Base(component, csrf_value)
+	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
 	renderComponent(base, c)
 	return nil
 }

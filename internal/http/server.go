@@ -71,7 +71,6 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	if !config.DisableCSRF {
 		e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 			TokenLookup: "header:X-CSRFToken",
-			// X-CSRFToken
 		}))
 
 	}
@@ -108,7 +107,7 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	s.registerPublicRoutes()
 
 	loggedInGroup := e.Group("/dashboard")
-	loggedInGroup.Use(s.requireAuth)
+	loggedInGroup.Use(s.requireAuthMiddleware)
 
 	s.registerLoggedInRoutes(loggedInGroup)
 
