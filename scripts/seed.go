@@ -23,7 +23,8 @@ func main() {
 	}
 
 	queries := db.New(database)
-	as := services.AuthenticationService{Queries: queries}
+
+	as := services.InitAuthService(&services.ServiceLocator{}, queries)
 	user, _ := as.Authenticate(dto.UserLoginDTO{Email: "dwiper@gmail.com", Password: "dave"})
 
 	item, err := queries.CreateNote(ctx, db.CreateNoteParams{UserID: user.ID, Content: faker.Paragraph(), IsPublic: false})

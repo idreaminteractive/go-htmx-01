@@ -20,7 +20,7 @@ func (s *Server) registerPublicRoutes() {
 func (s *Server) handleLogout(c echo.Context) error {
 	// kill session + redirect (i should not need to post anywhere)
 	// write a blank session
-	s.sessionService.WriteSession(c, services.SessionPayload{})
+	s.services.SessionService.WriteSession(c, services.SessionPayload{})
 	return c.Redirect(http.StatusMovedPermanently, "/")
 }
 
@@ -29,7 +29,7 @@ func (s *Server) handleLogout(c echo.Context) error {
 func (s *Server) handleHomeGet(c echo.Context) error {
 
 	// get our public notes
-	if notes, err := s.notesService.GetPublicNotes(); err != nil {
+	if notes, err := s.services.NotesService.GetPublicNotes(); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	} else {
 		csrf_value := getCSRFValueFromContext(c)
@@ -58,7 +58,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	}
 
 	// create our user + id
-	results, err := s.authenticationService.Authenticate(user)
+	results, err := s.services.AuthenticationService.Authenticate(user)
 	if err != nil {
 
 		component := views.LoginPage(user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
@@ -68,7 +68,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	}
 
 	// create our session + stuff
-	s.sessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
+	s.services.SessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
 
 	c.Response().Header().Set("HX-Redirect", "/dashboard")
 

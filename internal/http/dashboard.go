@@ -12,7 +12,7 @@ import (
 func (s *Server) requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		sess, err := s.sessionService.ReadSession(c)
+		sess, err := s.services.SessionService.ReadSession(c)
 		if err != nil {
 			logrus.WithField("err", err).Error("Error in getting session")
 			return echo.NewHTTPError(http.StatusUnauthorized, err)
@@ -43,13 +43,13 @@ func (s *Server) registerLoggedInRoutes(group *echo.Group) {
 func (s *Server) handleDashboard(c echo.Context) error {
 
 	// find our logged in user to get their personal notes
-	sp, err := s.sessionService.ReadSession(c)
+	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read session")
 
 	}
 
-	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	userNotes, err := s.services.NotesService.GetNotesForUserId(sp.UserId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
 	}

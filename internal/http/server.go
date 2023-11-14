@@ -27,11 +27,7 @@ type Server struct {
 	echo   *echo.Echo
 	config *config.EnvConfig
 
-	services *ServiceLocator
-
-	sessionService        services.ISessionService
-	authenticationService services.IAuthenticationService
-	notesService          *services.NotesService
+	services *services.ServiceLocator
 }
 
 type EchoSetupStruct struct {
@@ -89,20 +85,17 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	e := setupEcho(EchoSetupStruct{SessionSecret: config.SessionSecret})
 
 	// setup our service locator
+	sl := services.ServiceLocator{}
 
-	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
-
-	as := services.AuthenticationService{Queries: queries}
-	// if we want to hide the queries?
-	ns := services.InitNotesService(queries)
+	sl.AuthenticationService = services.InitAuthService(&sl, queries)
+	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
+	sl.NotesService = services.InitNotesService(&sl, queries)
 
 	// initialize the rest of our services
 	s := &Server{
-		authenticationService: &as,
-		echo:                  e,
-		sessionService:        &ss,
-		config:                config,
-		notesService:          ns,
+		echo:     e,
+		config:   config,
+		services: &sl,
 	}
 
 	// for now, this is fine - we'll set some monster caching later on

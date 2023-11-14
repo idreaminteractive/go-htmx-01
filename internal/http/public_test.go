@@ -54,8 +54,10 @@ func (s *ServiceTestSuite) SetupSuite() {
 func (s *ServiceTestSuite) SetupTest() {
 	// hook it up
 	s.server = &Server{
-		authenticationService: &MockAuthService{},
-		sessionService:        &MockSessionService{},
+		services: &services.ServiceLocator{
+			AuthenticationService: &MockAuthService{},
+			SessionService:        &MockSessionService{},
+		},
 	}
 }
 

@@ -20,7 +20,7 @@ func (s *Server) registerNoteRoutes(group *echo.Group) {
 
 func (s *Server) handlePutEditForm(c echo.Context) error {
 	// return the note rendered in place!
-	sp, err := s.sessionService.ReadSession(c)
+	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
 	}
@@ -44,14 +44,14 @@ func (s *Server) handlePutEditForm(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	// prob don't need to pass in ref hjere?
-	err = s.notesService.UpdateNote(sp.UserId, noteId, &notePayload)
+	err = s.services.NotesService.UpdateNote(sp.UserId, noteId, &notePayload)
 	// note, we could target the individual note to show
 	if err != nil {
 		logrus.Error("Error in updating note")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	userNotes, err := s.services.NotesService.GetNotesForUserId(sp.UserId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
 	}
@@ -64,7 +64,7 @@ func (s *Server) handlePutEditForm(c echo.Context) error {
 
 func (s *Server) handleGetEditForm(c echo.Context) error {
 	// get our note by id
-	sp, err := s.sessionService.ReadSession(c)
+	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
 
@@ -75,7 +75,7 @@ func (s *Server) handleGetEditForm(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	userNote, err := s.notesService.GetNoteById(sp.UserId, noteId)
+	userNote, err := s.services.NotesService.GetNoteById(sp.UserId, noteId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch note edit form")
 	}
@@ -87,7 +87,7 @@ func (s *Server) handleGetEditForm(c echo.Context) error {
 }
 
 func (s *Server) handleCreateNote(c echo.Context) error {
-	sp, err := s.sessionService.ReadSession(c)
+	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
 
@@ -103,14 +103,14 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 	logrus.WithField("Note:", notePayload).Info("Crearting....")
 
 	// prob don't need to pass in ref hjere?
-	_, err = s.notesService.CreateNewNote(sp.UserId, &notePayload)
+	_, err = s.services.NotesService.CreateNewNote(sp.UserId, &notePayload)
 	if err != nil {
 		logrus.Error("Error in creating note")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	// return our notes template w/ htmx ONLY...
-	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	userNotes, err := s.services.NotesService.GetNotesForUserId(sp.UserId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
 	}
@@ -124,7 +124,7 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 }
 
 func (s *Server) handleDeleteNote(c echo.Context) error {
-	sp, err := s.sessionService.ReadSession(c)
+	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
 
@@ -137,14 +137,14 @@ func (s *Server) handleDeleteNote(c echo.Context) error {
 	}
 	logrus.WithField("c", noteId).Info("hey")
 	// todo-  delete the note + return the notes list remaining
-	err = s.notesService.DeleteNote(sp.UserId, noteId)
+	err = s.services.NotesService.DeleteNote(sp.UserId, noteId)
 	if err != nil {
 		logrus.WithField("noteId", noteId).Error("Could note delete")
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	// return our notes template w/ htmx ONLY...
-	userNotes, err := s.notesService.GetNotesForUserId(sp.UserId)
+	userNotes, err := s.services.NotesService.GetNotesForUserId(sp.UserId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
 	}
