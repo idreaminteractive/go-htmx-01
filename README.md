@@ -7,6 +7,10 @@ A fancy Todo app
 
 ## Todo
 
+- routes.go
+- Setup handler closures
+- Inlined struct for validation on posts + puts + deletes (type Data struct - inside the closure)
+- Find more sane way to do templ files + structuring
 - Form validations in a sane way
     - ozzo
     - create a simple way to add in a field -> string + then can pass in errors per field
