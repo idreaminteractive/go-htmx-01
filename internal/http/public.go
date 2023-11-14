@@ -69,17 +69,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 
 	// create our session + stuff
 	s.sessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
-	// userNotes, err := s.notesService.GetNotesForUserId(int(results.ID))
-	// if err != nil {
-	// 	// some other error template
-	// 	return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch notes for user")
-	// }
-	// move them to the dashboard. this is kind of wild?
-	// component := views.Dashboard(csrf_value, userNotes)
-	// // add the url to the thing
-	// // i need this for forms on post if we are boosted.
+
 	c.Response().Header().Set("HX-Redirect", "/dashboard")
-	// renderComponent(component, c)
 
 	return c.NoContent(http.StatusOK)
 }

@@ -13,10 +13,11 @@ import (
 
 type NotesService struct {
 	queries *db.Queries
+	sl      *ServiceLocator
 }
 
-func InitNotesService(q *db.Queries) *NotesService {
-	return &NotesService{queries: q}
+func InitNotesService(sl *ServiceLocator, q *db.Queries) *NotesService {
+	return &NotesService{sl: sl, queries: q}
 }
 
 type AggregateNoteItem struct {

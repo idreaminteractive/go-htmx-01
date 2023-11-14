@@ -27,6 +27,8 @@ type Server struct {
 	echo   *echo.Echo
 	config *config.EnvConfig
 
+	services *ServiceLocator
+
 	sessionService        services.ISessionService
 	authenticationService services.IAuthenticationService
 	notesService          *services.NotesService
@@ -85,6 +87,8 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
 	e := setupEcho(EchoSetupStruct{SessionSecret: config.SessionSecret})
+
+	// setup our service locator
 
 	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
 

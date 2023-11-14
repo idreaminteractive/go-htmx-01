@@ -16,7 +16,15 @@ type IAuthenticationService interface {
 }
 
 type AuthenticationService struct {
-	Queries *db.Queries
+	sl      *ServiceLocator
+	queries *db.Queries
+}
+
+func InitAuthService(sl *ServiceLocator, queries *db.Queries) *AuthenticationService {
+	return &AuthenticationService{
+		sl:      sl,
+		queries: queries,
+	}
 }
 
 func hashPassword(password string) (string, error) {
