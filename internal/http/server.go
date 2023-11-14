@@ -97,6 +97,8 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 		services: &sl,
 	}
 
+	// left off here - reorg our routes into a routes.go file pls.
+
 	// for now, this is fine - we'll set some monster caching later on
 	e.Static("/static", "static")
 
@@ -104,18 +106,13 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	e.HEAD("/_health", s.healthCheckRoute)
 	e.GET("/_health", s.healthCheckRoute)
 
+	// Root routes
 	s.registerPublicRoutes()
 
 	loggedInGroup := e.Group("/dashboard")
 	loggedInGroup.Use(s.requireAuthMiddleware)
 
 	s.registerLoggedInRoutes(loggedInGroup)
-
-	// print the routes
-	// for _, item := range e.Router().Routes() {
-	// 	logrus.WithField("r", item).Info("")
-	// }
-
 	return s
 }
 func (s *Server) healthCheckRoute(c echo.Context) error {

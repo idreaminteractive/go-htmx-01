@@ -1,3 +1,6 @@
+/*
+# Route middlewares for site
+*/
 package http
 
 import (
@@ -20,10 +23,6 @@ func (s *Server) requireAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			logrus.Error("Not logged in")
 			return c.Redirect(http.StatusFound, "/login")
 		}
-
-		// for _, val := range c.Echo().Router().Routes() {
-		// 	logrus.WithField("val", val).Info("I should goto thing?")
-		// }
 
 		return next(c)
 	}
