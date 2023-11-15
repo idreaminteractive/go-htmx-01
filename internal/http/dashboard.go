@@ -8,14 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (s *Server) registerLoggedInRoutes(group *echo.Group) {
-	group.GET("", s.handleDashboard)
-	noteGroup := group.Group("/note")
-	s.registerNoteRoutes(noteGroup)
-}
-
 // will be the main page of the system
-func (s *Server) handleDashboard(c echo.Context) error {
+func (s *Server) handleDashboardGet(c echo.Context) error {
 
 	// find our logged in user to get their personal notes
 	sp, err := s.services.SessionService.ReadSession(c)

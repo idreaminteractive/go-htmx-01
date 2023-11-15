@@ -100,24 +100,17 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// left off here - reorg our routes into a routes.go file pls.
 
 	// for now, this is fine - we'll set some monster caching later on
-	e.Static("/static", "static")
 
-	// health check routes
-	e.HEAD("/_health", s.healthCheckRoute)
-	e.GET("/_health", s.healthCheckRoute)
+	s.routes()
 
-	// Root routes
-	s.registerPublicRoutes()
-
-	loggedInGroup := e.Group("/dashboard")
-	loggedInGroup.Use(s.requireAuthMiddleware)
-
-	s.registerLoggedInRoutes(loggedInGroup)
 	return s
 }
-func (s *Server) healthCheckRoute(c echo.Context) error {
 
-	return c.String(http.StatusOK, "ok")
+// example of the route closures
+func (s *Server) handleAnyHealthz() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	}
 
 }
 

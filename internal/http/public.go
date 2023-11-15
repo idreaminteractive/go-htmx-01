@@ -6,18 +6,12 @@ import (
 	"main/internal/views/dto"
 	"net/http"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+
 	"github.com/labstack/echo/v4"
 )
 
-func (s *Server) registerPublicRoutes() {
-	s.echo.GET("/", s.handleHomeGet)
-	s.echo.GET("/login", s.handleLoginGet)
-	s.echo.POST("/login", s.handleLoginPost)
-
-	s.echo.GET("/logout", s.handleLogout)
-}
-
-func (s *Server) handleLogout(c echo.Context) error {
+func (s *Server) handleLogoutGet(c echo.Context) error {
 	// kill session + redirect (i should not need to post anywhere)
 	// write a blank session
 	s.services.SessionService.WriteSession(c, services.SessionPayload{})
@@ -26,7 +20,7 @@ func (s *Server) handleLogout(c echo.Context) error {
 
 // will be the main page of the system
 // let's mirror our current live version that pulls in the stuff
-func (s *Server) handleHomeGet(c echo.Context) error {
+func (s *Server) handleRootGet(c echo.Context) error {
 
 	// get our public notes
 	if notes, err := s.services.NotesService.GetPublicNotes(); err != nil {
@@ -54,11 +48,19 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	// csrf_value := getCSRFValueFromContext(c)
-	if err := c.Validate(user); err != nil {
 
+	if err := user.Validate(); err != nil {
 		// login failed, so let's send back bad request
-		component := views.LoginPage(user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		// left off here - i feel like we can do better here
+		component := views.Base(views.BaseData{
+			Body: views.LoginPage(
+				views.LoginPageData{
+					LoginForm: views.LoginForm(views.LoginFormData{
+						Errors:   err.(validation.Errors),
+						Defaults: user,
+					}),
+				}),
+		})
 		// return the view with our error
 
 		renderComponent(component, c, 400)

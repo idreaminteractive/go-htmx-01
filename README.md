@@ -3,13 +3,13 @@
 
 ## What Are We Making?
 
-A fancy Todo app
+A fancy notes app
 
 ## Todo
 
-- routes.go
-- Setup handler closures
+
 - Inlined struct for validation on posts + puts + deletes (type Data struct - inside the closure)
+    - is this better?
 - Find more sane way to do templ files + structuring
 - Form validations in a sane way
     - ozzo
@@ -18,6 +18,7 @@ A fancy Todo app
     - if error [field] != nil {
         show the stuff ezpz
     }
+- How do we handle + send back previous responses if there's errors??
 - flash sessions
 - SSE with some neat stuff
 - Semantic layout, styling, UX and better test coverage.

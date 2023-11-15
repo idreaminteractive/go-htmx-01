@@ -1,8 +1,15 @@
 package views
 
 import "main/internal/views/dto"
+import "github.com/go-ozzo/ozzo-validation/v4"
 
-templ LoginPage(previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
+// define structs to control stuff,
+// and have our handler build + pass stuff in!
+type LoginPageData struct {
+	LoginForm templ.Component
+}
+
+templ LoginPage(data LoginPageData) {
 	<div class="min-h-screen flex items-center justify-center">
 		<div class="max-w-sm rounded-lg shadow-lg  p-6 space-y-6 border  border-gray-200">
 			<div class="space-y-2 text-center">
@@ -10,12 +17,17 @@ templ LoginPage(previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) 
 					Login
 				</h1>
 			</div>
-			@LoginForm( previousEntry, errors)
+			{! data.LoginForm }
 		</div>
 	</div>
 }
 
-templ LoginForm (previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors) {
+type LoginFormData struct {
+	Errors   validation.Errors
+	Defaults dto.UserLoginDTO
+}
+
+templ LoginForm (data LoginFormData) {
 	<form method="post" action="/login" hx-push-url="true" class="group">
 		<div class="space-y-4">
 			<div class="space-y-2">
@@ -27,14 +39,14 @@ templ LoginForm (previousEntry dto.UserLoginDTO, errors dto.UserLoginFormErrors)
  						name="email"
  						type="email"
  						id="email"
- 						value={ previousEntry.Email }
+ 						value={ data.Defaults.Email }
  						placeholder="m@example.com"
  						required
  						class="input input-bordered w-full max-w-xs"
 					/>
-					if errors.Message != "" {
+					if data.Errors != nil && data.Errors["email"] != nil {
 						<label class="label">
-							<span class="label-text-alt text-error ">{ errors.Message }</span>
+							<span class="label-text-alt text-error ">{ data.Errors["email"].Error() }</span>
 						</label>
 					}
 				</div>

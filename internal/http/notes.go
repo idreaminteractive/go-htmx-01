@@ -10,15 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *Server) registerNoteRoutes(group *echo.Group) {
-	group.POST("", s.handleCreateNote)
-	group.DELETE("/:id", s.handleDeleteNote)
-	group.GET("/:id/edit", s.handleGetEditForm)
-	group.PUT("/:id/edit", s.handlePutEditForm)
-
-}
-
-func (s *Server) handlePutEditForm(c echo.Context) error {
+func (s *Server) handleNoteByIdPut(c echo.Context) error {
 	// return the note rendered in place!
 	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
@@ -62,7 +54,7 @@ func (s *Server) handlePutEditForm(c echo.Context) error {
 	return nil
 }
 
-func (s *Server) handleGetEditForm(c echo.Context) error {
+func (s *Server) handleNoteByIdEditGet(c echo.Context) error {
 	// get our note by id
 	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
@@ -86,7 +78,7 @@ func (s *Server) handleGetEditForm(c echo.Context) error {
 	return nil
 }
 
-func (s *Server) handleCreateNote(c echo.Context) error {
+func (s *Server) handleNotePost(c echo.Context) error {
 	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
@@ -123,7 +115,7 @@ func (s *Server) handleCreateNote(c echo.Context) error {
 
 }
 
-func (s *Server) handleDeleteNote(c echo.Context) error {
+func (s *Server) handleNoteByIdDelete(c echo.Context) error {
 	sp, err := s.services.SessionService.ReadSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read session")
