@@ -62,16 +62,27 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 				}),
 		})
 		// return the view with our error
-
-		renderComponent(component, c, 400)
+		// note - it's a 200 message ALWAYS
+		renderComponent(component, c)
 		return nil
 	}
 
 	// create our user + id
 	results, err := s.services.AuthenticationService.Authenticate(user)
 	if err != nil {
-
-		component := views.LoginPage(user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
+		// not a fan of this.... can prob clean it up
+		component := views.Base(views.BaseData{
+			Body: views.LoginPage(
+				views.LoginPageData{
+					LoginForm: views.LoginForm(views.LoginFormData{
+						Errors: map[string]error{
+							"email": validation.NewError("", "Email or password is invalid "),
+						},
+						Defaults: user,
+					}),
+				}),
+		})
+		// component := views.LoginPage(user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)
 		return nil
@@ -89,7 +100,15 @@ func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
 	csrf_value := getCSRFValueFromContext(c)
 
-	component := views.LoginPage(dto.UserLoginDTO{}, dto.UserLoginFormErrors{})
+	component := views.Base(views.BaseData{
+		Body: views.LoginPage(
+			views.LoginPageData{
+				LoginForm: views.LoginForm(views.LoginFormData{
+					Errors:   nil,
+					Defaults: dto.UserLoginDTO{},
+				}),
+			}),
+	})
 	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
 	renderComponent(base, c)
 	return nil
