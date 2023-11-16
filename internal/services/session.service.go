@@ -21,13 +21,22 @@ type SessionPayload struct {
 }
 
 type SessionService struct {
-	SessionName string
-	MaxAge      int
+	sessionName string
+	maxAge      int
+	sl          *ServiceLocator
+}
+
+func InitSessionService(sl *ServiceLocator, sessionName string, maxAge int) *SessionService {
+	return &SessionService{
+		sessionName: sessionName,
+		maxAge:      maxAge,
+		sl:          sl,
+	}
 }
 
 func (ss *SessionService) ReadSession(c echo.Context) (SessionPayload, error) {
 	// this feels janky - but it's fine for now.
-	sess, err := session.Get(ss.SessionName, c)
+	sess, err := session.Get(ss.sessionName, c)
 	if err != nil {
 		logrus.Error("Error in getting session")
 		return SessionPayload{}, err
@@ -41,14 +50,14 @@ func (ss *SessionService) ReadSession(c echo.Context) (SessionPayload, error) {
 }
 
 func (ss *SessionService) WriteSession(c echo.Context, sp SessionPayload) error {
-	sess, err := session.Get(ss.SessionName, c)
+	sess, err := session.Get(ss.sessionName, c)
 	if err != nil {
 		logrus.Info("Could not get session")
 		return err
 	}
 	sess.Options = &sessions.Options{
 		Path:     "/",
-		MaxAge:   ss.MaxAge,
+		MaxAge:   ss.maxAge,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}

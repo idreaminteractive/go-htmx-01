@@ -3,13 +3,22 @@
 
 ## What Are We Making?
 
-A fancy Todo app
+A fancy notes app
 
 ## Todo
 
+
+- Inlined struct for validation on posts + puts + deletes (type Data struct - inside the closure)
+    - is this better?
+- Find more sane way to do templ files + structuring
 - Form validations in a sane way
-    - look @ https://dev.to/thanhphuchuynh/customizing-error-messages-in-struct-validation-using-tags-in-go-4k0j 
+    - ozzo
     - create a simple way to add in a field -> string + then can pass in errors per field
+    - get the map of the errors + pass those ito the templates
+    - if error [field] != nil {
+        show the stuff ezpz
+    }
+- How do we handle + send back previous responses if there's errors??
 - flash sessions
 - SSE with some neat stuff
 - Semantic layout, styling, UX and better test coverage.

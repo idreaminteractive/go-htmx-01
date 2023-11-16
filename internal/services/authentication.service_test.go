@@ -43,8 +43,9 @@ func (s *ServiceTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
+	sl := ServiceLocator{}
 	queries := db.New(s.database.Connection)
-	s.authService = &AuthenticationService{Queries: queries}
+	s.authService = &AuthenticationService{sl: &sl, queries: queries}
 }
 
 func (s *ServiceTestSuite) BeforeTest(suiteName, testName string) {
@@ -52,7 +53,7 @@ func (s *ServiceTestSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *ServiceTestSuite) TestAuthenticateNewUser() {
-	users, err := s.authService.Queries.GetAllUsers(s.context)
+	users, err := s.authService.queries.GetAllUsers(s.context)
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(len(users), 0)
 	email, password := faker.Email(), faker.Password()
@@ -62,7 +63,7 @@ func (s *ServiceTestSuite) TestAuthenticateNewUser() {
 	s.Equal(u.Email, email)
 	// since it's hashed
 	s.NotEqual(u.Password, password)
-	users, err = s.authService.Queries.GetAllUsers(s.context)
+	users, err = s.authService.queries.GetAllUsers(s.context)
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(1, len(users), "user was not created?")
 
@@ -75,7 +76,7 @@ func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
 	s.Nil(err, "Error is not nil")
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
-	users, err := s.authService.Queries.GetAllUsers(s.context)
+	users, err := s.authService.queries.GetAllUsers(s.context)
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(len(users), 1)
 
@@ -84,7 +85,7 @@ func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
 
-	users, err = s.authService.Queries.GetAllUsers(s.context)
+	users, err = s.authService.queries.GetAllUsers(s.context)
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(len(users), 1, "new user was created unintentionally")
 }

@@ -7,18 +7,21 @@ import (
 	"fmt"
 )
 
-templ Home(notes *[]db.GetPublicNotesRow) {
+type HomePageData struct {
+	Notes *[]db.GetPublicNotesRow
+}
+
+templ Home(data HomePageData) {
 	<header data-testid="headerTemplate">
 		<h1>Welcome!</h1>
 		<div><a href="/login">Login here</a></div>
-		@PublicNotesListing(notes)
+		@PublicNotesListing(data.Notes)
 	</header>
 }
 
 templ PublicNotesListing(notes *[]db.GetPublicNotesRow) {
 	<div id="note-listing" class="mt-4">
 		<h1 class="text-xl">Most recent public notes</h1>
-		<div hx-sse="connect:/events swap:message"></div>
 		if len(*notes) == 0 {
 			<div>There are no public notes</div>
 		}

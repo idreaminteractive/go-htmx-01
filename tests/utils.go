@@ -77,13 +77,3 @@ func WipeDB(db *sql.DB) error {
 	// ok
 	return nil
 }
-
-// await prisma.$executeRaw`PRAGMA foreign_keys=OFF`;
-
-// 	const deleteQuery = `delete from ${t.name};`;
-
-// 	await prisma.$executeRawUnsafe(deleteQuery);
-// }
-
-// await prisma.$executeRaw`PRAGMA foreign_key_check;`;
-// await prisma.$executeRaw`PRAGMA foreign_keys=ON;`;

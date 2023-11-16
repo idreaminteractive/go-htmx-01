@@ -11,30 +11,23 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-playground/validator"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/sessions"
 )
 
 const ShutdownTimeout = 1 * time.Second
 
+// i want to
 type Server struct {
-	echo                  *echo.Echo
-	config                *config.EnvConfig
-	sessionService        services.ISessionService
-	authenticationService services.IAuthenticationService
-	notesService          *services.NotesService
-}
-type CustomValidator struct {
-	validator *validator.Validate
-}
+	echo   *echo.Echo
+	config *config.EnvConfig
 
-func (cv *CustomValidator) Validate(i interface{}) error {
-	return cv.validator.Struct(i)
+	services *services.ServiceLocator
 }
 
 type EchoSetupStruct struct {
@@ -47,8 +40,7 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
 	e := echo.New()
-	// let's try sth different!
-	// e.GET("/events", handleSSE)
+
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
@@ -59,26 +51,26 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
 	e.Use(middleware.Gzip())
-	validate := validator.New()
-	// validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 
-	// 	fmt.Printf("fld: %v\n", fld)
-	// 	fmt.Printf("tag: %v\n", fld.Tag)
-	// 	name := strings.SplitN(fld.Tag.Get("form"), ",", 2)[0]
-	// 	if name == "-" {
-	// 		return ""
-	// 	}
-	// 	return name
-	// })
+	// set that we're looking for form
+	validation.ErrorTag = "form"
+	// errs := note.Validate()
 
-	e.Validator = &CustomValidator{validator: validate}
+	// if errs != nil {
+	// 	terr := errs.(validation.Errors)
+	// 	fmt.Println(terr["content"])
+	// 	fmt.Println("------")
+	// 	fmt.Println(terr["potato"])
+	// 	fmt.Println("------")
+
+	// }
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Recover())
 	if !config.DisableCSRF {
 		e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 			TokenLookup: "header:X-CSRFToken",
-			// X-CSRFToken
 		}))
 
 	}
@@ -91,45 +83,34 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// server
 	e := setupEcho(EchoSetupStruct{SessionSecret: config.SessionSecret})
 
-	ss := services.SessionService{SessionName: "_session", MaxAge: 3600}
+	// setup our service locator
+	sl := services.ServiceLocator{}
 
-	as := services.AuthenticationService{Queries: queries}
-	// if we want to hide the queries?
-	ns := services.InitNotesService(queries)
+	sl.AuthenticationService = services.InitAuthService(&sl, queries)
+	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
+	sl.NotesService = services.InitNotesService(&sl, queries)
 
 	// initialize the rest of our services
 	s := &Server{
-		authenticationService: &as,
-		echo:                  e,
-		sessionService:        &ss,
-		config:                config,
-		notesService:          ns,
+		echo:     e,
+		config:   config,
+		services: &sl,
 	}
+
+	// left off here - reorg our routes into a routes.go file pls.
 
 	// for now, this is fine - we'll set some monster caching later on
-	e.Static("/static", "static")
 
-	// health check routes
-	e.HEAD("/_health", s.healthCheckRoute)
-	e.GET("/_health", s.healthCheckRoute)
-
-	s.registerPublicRoutes()
-
-	loggedInGroup := e.Group("/dashboard")
-	loggedInGroup.Use(s.requireAuth)
-
-	s.registerLoggedInRoutes(loggedInGroup)
-
-	// print the routes
-	for _, item := range e.Router().Routes() {
-		logrus.WithField("r", item).Info("")
-	}
+	s.routes()
 
 	return s
 }
-func (s *Server) healthCheckRoute(c echo.Context) error {
 
-	return c.String(http.StatusOK, "ok")
+// example of the route closures
+func (s *Server) handleAnyHealthz() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	}
 
 }
 

@@ -17,9 +17,9 @@ import (
 
 // See the wtf project for reference
 type Program struct {
-	DB         *sqlite.DB
-	Port       int
-	HTTPServer *http.Server
+	DB     *sqlite.DB
+	Port   int
+	Server *http.Server
 }
 
 func NewProgram() *Program {
@@ -47,14 +47,14 @@ func NewProgram() *Program {
 		Port: port,
 		DB:   sqlite.NewDB(config.DatabaseFileName),
 		// wrapper for our http server w/ all the services
-		HTTPServer: http.NewServer(config, queries),
+		Server: http.NewServer(config, queries),
 	}
 }
 
 // Close gracefully stops the program.
 func (m *Program) Close() error {
-	if m.HTTPServer != nil {
-		if err := m.HTTPServer.Close(); err != nil {
+	if m.Server != nil {
+		if err := m.Server.Close(); err != nil {
 			return err
 		}
 	}
@@ -68,7 +68,7 @@ func (m *Program) Close() error {
 
 func (m *Program) Run(ctx context.Context) error {
 
-	if err := m.HTTPServer.Open(fmt.Sprintf(":%d", m.Port)); err != nil {
+	if err := m.Server.Open(fmt.Sprintf(":%d", m.Port)); err != nil {
 		return err
 	}
 	return nil
@@ -80,6 +80,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)
+	// if we receive an os interrupt, we run cancel which kills the rest of it all
 	signal.Notify(c, os.Interrupt)
 	go func() { <-c; cancel() }()
 

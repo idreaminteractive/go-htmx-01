@@ -16,7 +16,15 @@ type IAuthenticationService interface {
 }
 
 type AuthenticationService struct {
-	Queries *db.Queries
+	sl      *ServiceLocator
+	queries *db.Queries
+}
+
+func InitAuthService(sl *ServiceLocator, queries *db.Queries) *AuthenticationService {
+	return &AuthenticationService{
+		sl:      sl,
+		queries: queries,
+	}
 }
 
 func hashPassword(password string) (string, error) {
@@ -32,7 +40,7 @@ func checkPasswordHash(password, hash string) bool {
 func (as *AuthenticationService) Authenticate(payload dto.UserLoginDTO) (*db.User, error) {
 	ctx := context.Background()
 	logrus.WithField("user", payload.Email).Info("Auth attempt")
-	results, err := as.Queries.GetUserByEmail(ctx, payload.Email)
+	results, err := as.queries.GetUserByEmail(ctx, payload.Email)
 	if err != nil {
 		// since this is return one or fail - if it errors, the suer is not made.
 		logrus.Errorf("No user found for %s, making new acct", payload.Email)
@@ -44,7 +52,7 @@ func (as *AuthenticationService) Authenticate(payload dto.UserLoginDTO) (*db.Use
 		}
 		// ok - hashing is cool.
 		// make the user
-		createdUser, err := as.Queries.CreateUser(ctx, db.CreateUserParams{Email: payload.Email, Password: hashed})
+		createdUser, err := as.queries.CreateUser(ctx, db.CreateUserParams{Email: payload.Email, Password: hashed})
 		if err != nil {
 			logrus.WithError(err).Error("Error in creating user")
 			// need to return proper errors
