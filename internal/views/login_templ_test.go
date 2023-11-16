@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +16,7 @@ func TestViewLoginForm_Get(t *testing.T) {
 	r, w := io.Pipe()
 
 	go func() {
-		_ = LoginForm(dto.UserLoginDTO{}, dto.UserLoginFormErrors{}).Render(context.Background(), w)
+		_ = LoginForm(LoginFormData{Defaults: dto.UserLoginDTO{}}).Render(context.Background(), w)
 		_ = w.Close()
 	}()
 	doc, err := goquery.NewDocumentFromReader(r)
@@ -44,7 +45,9 @@ func TestViewLoginForm_WithErrors(t *testing.T) {
 
 	go func() {
 
-		_ = LoginForm(dto.UserLoginDTO{Email: prefilled}, dto.UserLoginFormErrors{Message: "Error in post"}).Render(context.Background(), w)
+		_ = LoginForm(LoginFormData{Defaults: dto.UserLoginDTO{Email: prefilled}, Errors: map[string]error{
+			"email": validation.NewError("", "Email or password is invalid "),
+		}}).Render(context.Background(), w)
 		_ = w.Close()
 	}()
 	doc, err := goquery.NewDocumentFromReader(r)

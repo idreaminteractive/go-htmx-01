@@ -69,9 +69,10 @@ templ LoginForm (data LoginFormData) {
 					</span>
 				</div>
 			</div>
-			<button type="submit" class="btn btn-primary w-full px-32 group-invalid:pointer-events-none group-invalid:opacity-30">
+			<button type="submit" hx-indicator="#spinner" class="btn btn-primary w-full px-32">
 				<div class="flex items-center justify-center">
 					Login
+					<span class="loading loading-spinner htmx-indicator"></span>
 				</div>
 			</button>
 		</div>
