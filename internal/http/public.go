@@ -50,8 +50,8 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	}
 
 	if err := user.Validate(); err != nil {
-		// login failed, so let's send back bad request
-		// left off here - i feel like we can do better here
+
+		// validation failed.
 		component := views.Base(views.BaseData{
 			Body: views.LoginPage(
 				views.LoginPageData{
@@ -69,6 +69,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 
 	// create our user + id
 	results, err := s.services.AuthenticationService.Authenticate(user)
+	// auth fails
 	if err != nil {
 		// not a fan of this.... can prob clean it up
 		component := views.Base(views.BaseData{
@@ -82,7 +83,6 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 					}),
 				}),
 		})
-		// component := views.LoginPage(user, dto.UserLoginFormErrors{Message: "Invalid login, please try again"})
 		// return the view with our error
 		renderComponent(component, c)
 		return nil
