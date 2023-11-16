@@ -3,7 +3,7 @@ module main
 go 1.20
 
 require (
-	github.com/a-h/templ v0.2.432
+	github.com/a-h/templ v0.2.476
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/go-faker/faker/v4 v4.1.1
 	github.com/gorilla/sessions v1.2.1
@@ -34,7 +34,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.14.0
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
