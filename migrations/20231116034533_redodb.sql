@@ -3,6 +3,16 @@
 SELECT 'up SQL query';
 PRAGMA foreign_keys=off;
 
+DROP TABLE if exists user;
+CREATE TABLE IF NOT EXISTS user( 
+   id integer primary key autoincrement,
+   email text not null,
+   name text not null,
+   password text not null,
+   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
 DROP TABLE if exists conversation;
 
 create table if not exists conversation (
