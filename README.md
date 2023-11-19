@@ -7,7 +7,9 @@ A fancy notes app
 
 ## Todo
 
-
+- SQLC - does it check values when i change schemas?
+- setup base routes for views
+- 
 - Inlined struct for validation on posts + puts + deletes (type Data struct - inside the closure)
     - is this better?
 - Find more sane way to do templ files + structuring
