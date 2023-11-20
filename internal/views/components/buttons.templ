@@ -1,0 +1,45 @@
+package components
+
+import (
+	"fmt"
+ "strings"
+ )
+
+type ButtonType string
+
+const (
+	SubmitButton ButtonType = "submit"
+)
+
+type ButtonProps struct {
+	buttonType ButtonType
+	class      string
+}
+
+type HTMXParams struct {
+  Get    string
+  Target string
+  Swap   string
+}
+
+type AppButtonParams struct {
+  Variant string
+  Size    string
+  Class   string
+  HTMXParams           // Embedded
+}
+
+func renderAttributes(attrs map[string]string) string {
+  var result []string
+  for key, val := range attrs {
+    if val != "" {
+      result = append(result, fmt.Sprintf("%s=\"%s\"", key, val))
+    }
+  }
+  return strings.Join(result, " ")
+}
+templ Button(props ButtonProps) {
+	<button { renderAttributes(map[string]string{ "hx-get": params.Get,"hx-target": params.Target,"hx-swap": params.Swap      }) } >
+		{children...}
+	</button>
+}
