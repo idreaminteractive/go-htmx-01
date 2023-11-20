@@ -6,6 +6,7 @@ import (
 	"main/internal/views/dto"
 	"net/http"
 
+	"github.com/a-h/templ"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/labstack/echo/v4"
@@ -23,20 +24,32 @@ func (s *Server) handleLogoutGet(c echo.Context) error {
 func (s *Server) handleRootGet(c echo.Context) error {
 
 	// get our public notes
-	if notes, err := s.services.NotesService.GetPublicNotes(); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	} else {
-		csrf_value := getCSRFValueFromContext(c)
-		body := views.Home(views.HomePageData{Notes: notes})
-		renderComponent(
-			views.Base(
-				views.BaseData{
-					Body:  body,
-					CSRF:  csrf_value,
-					Title: "GoNotes",
-				}),
-			c)
-	}
+	// if notes, err := s.services.NotesService.GetPublicNotes(); err != nil {
+	// 	return echo.NewHTTPError(http.StatusInternalServerError, err)
+	// } else {
+	// 	csrf_value := getCSRFValueFromContext(c)
+	// 	body := views.Home(views.HomePageData{Notes: notes})
+	// 	renderComponent(
+	// 		views.Base(
+	// 			views.BaseData{
+	// 				Body:  body,
+	// 				CSRF:  csrf_value,
+	// 				Title: "GoNotes",
+	// 			}),
+	// 		c)
+	// }
+	csrf_value := getCSRFValueFromContext(c)
+	body := views.Root()
+
+	renderComponent(
+		views.Base(
+			views.BaseData{
+				Body:  body,
+				CSRF:  csrf_value,
+				Title: "GoNotes",
+			},
+		),
+		c)
 
 	return nil
 }
@@ -100,16 +113,35 @@ func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
 	csrf_value := getCSRFValueFromContext(c)
 
-	component := views.Base(views.BaseData{
-		Body: views.LoginPage(
-			views.LoginPageData{
-				LoginForm: views.LoginForm(views.LoginFormData{
-					Errors:   nil,
-					Defaults: dto.UserLoginDTO{},
-				}),
-			}),
-	})
+	component := views.LoginScreen()
 	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
 	renderComponent(base, c)
 	return nil
+}
+
+func (s *Server) handleMessageCountGet(c echo.Context) error {
+
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("Cache-Control", "no-cache")
+	c.Response().Header().Set("Connection", "keep-alive")
+	c.Response().Header().Set("Content-Type", "text/event-stream")
+	component := views.MessageCount(13)
+	c.Response().Writer.WriteHeader(200)
+	templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
+	// renderComponent(component, c)
+	return nil
+}
+
+func (s *Server) handleRegisterGet(c echo.Context) error {
+	// no errors or anything on initial bits.
+	component := views.RegisterForm()
+	base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Register"})
+	renderComponent(base, c)
+	return nil
+}
+
+func (s *Server) handleRegisterPost(c echo.Context) error {
+	// no errors or anything on initial bits.
+
+	return echo.NewHTTPError(http.StatusNotFound)
 }

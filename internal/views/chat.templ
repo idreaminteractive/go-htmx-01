@@ -1,5 +1,11 @@
 package views 
 
+import "strconv"
+
+templ MessageCount( c int ) {
+	<span>{ strconv.Itoa(c) }</span>
+}
+
 templ ChatScreen () {
 	<div class="grid h-screen w-full lg:grid-cols-[280px_1fr] bg-gradient-to-r from-black via-gray-800 to-black">
 		<div class="hidden border-r bg-black/60 lg:block">

@@ -65,6 +65,8 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 
 	// }
 
+	// wrap up
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Recover())

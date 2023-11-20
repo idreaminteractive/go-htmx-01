@@ -20,14 +20,19 @@ func (s *Server) routes() {
 
 	s.echo.GET("/logout", s.handleLogoutGet)
 
-	// Authenticated routes
-	authGroup := s.echo.Group("/dashboard")
-	authGroup.Use(s.requireAuthMiddleware)
-	authGroup.GET("", s.handleDashboardGet)
+	s.echo.GET("/register", s.handleRegisterGet)
+	s.echo.POST("/register", s.handleRegisterPost)
 
-	authGroup.POST("/note", s.handleNotePost)
-	authGroup.DELETE("/note/:id", s.handleNoteByIdDelete)
-	authGroup.GET("/note/:id/edit", s.handleNoteByIdEditGet)
-	authGroup.PUT("/note/:id", s.handleNoteByIdPut)
+	s.echo.GET("/message-count", s.handleMessageCountGet)
+
+	// Authenticated routes
+	// authGroup := s.echo.Group("/dashboard")
+	// authGroup.Use(s.requireAuthMiddleware)
+	// authGroup.GET("", s.handleDashboardGet)
+
+	// authGroup.POST("/note", s.handleNotePost)
+	// authGroup.DELETE("/note/:id", s.handleNoteByIdDelete)
+	// authGroup.GET("/note/:id/edit", s.handleNoteByIdEditGet)
+	// authGroup.PUT("/note/:id", s.handleNoteByIdPut)
 
 }
