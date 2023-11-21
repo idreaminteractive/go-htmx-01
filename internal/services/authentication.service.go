@@ -25,7 +25,7 @@ func InitAuthService(sl *ServiceLocator, queries *db.Queries) *AuthenticationSer
 }
 
 func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	return string(bytes), err
 }
 
@@ -33,12 +33,6 @@ func checkPasswordHash(clearText, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(clearText))
 	return err == nil
 }
-
-// func checkPasswordHash(hashed, fromDB string) bool {
-// 	// err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-// 	// return err == nil
-// 	return hashed == fromDB
-// }
 
 func (as *AuthenticationService) Register(payload dto.RegisterDTO) (*db.User, error) {
 	ctx := context.Background()
