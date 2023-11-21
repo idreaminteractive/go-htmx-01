@@ -23,19 +23,9 @@ func (s *Server) routes() {
 	s.echo.GET("/register", s.handleRegisterGet)
 	s.echo.POST("/register", s.handleRegisterPost)
 
-	// once we're logged in, where to?
-	s.echo.GET("/chat", s.handleChatGet)
-
-	// s.echo.GET("/message-count", s.handleMessageCountGet)
-
-	// Authenticated routes
-	// authGroup := s.echo.Group("/dashboard")
-	// authGroup.Use(s.requireAuthMiddleware)
-	// authGroup.GET("", s.handleDashboardGet)
-
-	// authGroup.POST("/note", s.handleNotePost)
-	// authGroup.DELETE("/note/:id", s.handleNoteByIdDelete)
-	// authGroup.GET("/note/:id/edit", s.handleNoteByIdEditGet)
-	// authGroup.PUT("/note/:id", s.handleNoteByIdPut)
+	// Logged in routes
+	chatGroup := s.echo.Group("/chat")
+	chatGroup.Use(s.requireAuthMiddleware)
+	chatGroup.GET("", s.handleChatGet)
 
 }
