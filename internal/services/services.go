@@ -5,6 +5,7 @@ type ServiceLocator struct {
 	// be able to reference each other.
 
 	SessionService        ISessionService
-	AuthenticationService IAuthenticationService
-	NotesService          *NotesService
+	AuthenticationService *AuthenticationService
+
+	// add our chat service
 }

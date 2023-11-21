@@ -5,7 +5,6 @@
 package db
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -33,10 +32,10 @@ type Note struct {
 
 type User struct {
 	ID        int64
-	FirstName sql.NullString
-	LastName  sql.NullString
-	Password  string
 	Email     string
+	Handle    string
+	Password  string
+	CreatedAt time.Time
 }
 
 type UserConversation struct {

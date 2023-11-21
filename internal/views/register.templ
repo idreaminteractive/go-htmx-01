@@ -1,20 +1,33 @@
 package views
 
-templ RegisterForm () {
+import "main/internal/views/dto"
+import "github.com/go-ozzo/ozzo-validation/v4"
+
+type RegisterFormData struct {
+	Previous dto.RegisterDTO
+	Errors   validation.Errors
+}
+
+templ RegisterForm (formData RegisterFormData) {
 	<div class="flex items-center justify-center h-screen bg-gradient-to-r from-black via-gray-800 to-black">
 		<div class="w-full max-w-md bg-black/60 p-8 rounded-lg">
 			<h1 class="text-2xl font-bold text-white mb-6 text-center">Register</h1>
-			<form class="space-y-4">
+			<form class="space-y-4" method="post" action="/register">
 				<div>
 					<label class="block text-gray-400 mb-2" for="handle">
 						Chat Handle
 					</label>
 					<input
- 						class="w-full p-2 bg-gray-800 text-white rounded"
+ 						class=" w-full p-2 bg-gray-800 text-white rounded"
  						id="handle"
+ 						name="handle"
  						placeholder="Enter your chat handle"
  						type="text"
+ 						value={ formData.Previous.Handle }
 					/>
+					if formData.Errors["handle"] != nil {
+						<p class="text-red-500 text-xs mt-1">{ formData.Errors["handle"].Error() }</p>
+					}
 				</div>
 				<div>
 					<label class="block text-gray-400 mb-2" for="email">
@@ -23,9 +36,14 @@ templ RegisterForm () {
 					<input
  						class="w-full p-2 bg-gray-800 text-white rounded"
  						id="email"
+ 						name="email"
  						placeholder="Enter your email"
+ 						value={ formData.Previous.Email }
  						type="email"
 					/>
+					if formData.Errors["email"] != nil {
+						<p class="text-red-500 text-xs mt-1">{ formData.Errors["email"].Error() }</p>
+					}
 				</div>
 				<div>
 					<label class="block text-gray-400 mb-2" for="password">
@@ -34,9 +52,14 @@ templ RegisterForm () {
 					<input
  						class="w-full p-2 bg-gray-800 text-white rounded"
  						id="password"
+ 						name="password"
  						placeholder="Enter your password"
+ 						value={ formData.Previous.Password }
  						type="password"
 					/>
+					if formData.Errors["password"] != nil {
+						<p class="text-red-500 text-xs mt-1">{ formData.Errors["password"].Error() }</p>
+					}
 				</div>
 				<div>
 					<label class="block text-gray-400 mb-2" for="confirm-password">
@@ -45,11 +68,16 @@ templ RegisterForm () {
 					<input
  						class="w-full p-2 bg-gray-800 text-white rounded"
  						id="confirm-password"
+ 						name="confirm_password"
  						placeholder="Confirm your password"
+ 						value={ formData.Previous.ConfirmPassword }
  						type="password"
 					/>
+					if formData.Errors["confirm_password"] != nil {
+						<p class="text-red-500 text-xs mt-1">{ formData.Errors["confirm_password"].Error() }</p>
+					}
 				</div>
-				<button class="btn btn-primary btn-wide" type="submit" variant="outline">
+				<button class="btn btn-primary btn-block" type="submit" variant="outline">
 					Register
 				</button>
 				<div class="text-center mt-4">

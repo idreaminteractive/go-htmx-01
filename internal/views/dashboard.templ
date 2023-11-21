@@ -1,16 +1,11 @@
 package views 
 
-import "main/internal/db"
-
-templ Dashboard( notes *[]db.ListNotesForUserRow) {
+templ Dashboard( ) {
 	<div class="container mx-auto">
 		<nav class="na">
 			<a class="btn btn-ghost" href="/dashboard">Dashboard</a>
 			<a class="btn btn-ghost" href="/logout">Logout</a>
 		</nav>
-		<div class="max-w-xs">
-			@CreateNoteForm()
-		</div>
-		@NotesListing(notes)
+		<div class="max-w-xs"></div>
 	</div>
 }

@@ -43,6 +43,11 @@ tasks:
     cmds:
       - sqlc generate
 
+  introspect:
+    cmds:
+      - bash prepPrisma.sh
+      - doppler run -- npx -y prisma db pull --schema schema.prisma --force
+
   lint:
     cmds:
       - staticcheck cmd/main.go

@@ -23,7 +23,10 @@ func (s *Server) routes() {
 	s.echo.GET("/register", s.handleRegisterGet)
 	s.echo.POST("/register", s.handleRegisterPost)
 
-	s.echo.GET("/message-count", s.handleMessageCountGet)
+	// once we're logged in, where to?
+	s.echo.GET("/chat", s.handleChatGet)
+
+	// s.echo.GET("/message-count", s.handleMessageCountGet)
 
 	// Authenticated routes
 	// authGroup := s.echo.Group("/dashboard")

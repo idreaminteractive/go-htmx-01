@@ -2,8 +2,8 @@
 
 -- name: CreateUser :one
 insert into user (
-  password, email, name
-) values (? , ?) returning *;
+  password, email, handle
+) values (? , ?, ?) returning *;
 
 
 -- name: GetUserByEmail :one
