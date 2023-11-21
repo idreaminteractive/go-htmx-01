@@ -43,10 +43,9 @@ tasks:
     cmds:
       - sqlc generate
 
-  introspect:
+  sqlweb:
     cmds:
-      - bash prepPrisma.sh
-      - doppler run -- npx -y prisma db pull --schema schema.prisma --force
+      - sqlite_web -p 8088 /litefs/potato.db
 
   lint:
     cmds:
