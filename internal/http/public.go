@@ -6,6 +6,7 @@ import (
 	"main/internal/views"
 	"main/internal/views/dto"
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -57,6 +58,7 @@ func (s *Server) handleRootGet(c echo.Context) error {
 }
 
 func (s *Server) handleLoginPost(c echo.Context) error {
+	time.Sleep(time.Second * 10)
 	var user dto.UserLoginDTO
 	if err := c.Bind(&user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

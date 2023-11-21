@@ -43,7 +43,7 @@ tasks:
     cmds:
       - sqlc generate
 
-  sqlweb:
+  studio:
     cmds:
       - sqlite_web -p 8088 /litefs/potato.db
 
