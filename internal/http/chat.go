@@ -19,9 +19,9 @@ func (s *Server) handleChatByIdPost(c echo.Context) error {
 	if err := message.Validate(); err != nil {
 		// formErrors = err.(validation.Errors)
 		// hx return here
-		component := views.ChatMessageInput(views.ChatMessageInputProps{PreviousMessage: message.Message, Error: err})
+		component := views.ChatMessageForm(views.ChatMessageFormProps{PreviousMessage: message.Message, Error: err})
 		// render w/ hx
-		c.Response().Header().Set("HX-Retarget", "messageInput")
+		c.Response().Header().Set("HX-Retarget", "#messageForm")
 		c.Response().Header().Set("HX-Reswap", "outerHTML")
 
 		renderComponent(component, c)

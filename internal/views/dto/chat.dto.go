@@ -5,7 +5,7 @@ import (
 )
 
 type ChatMessageDTO struct {
-	Message string `form:"messageInput"`
+	Message string `form:"message"`
 }
 
 func (a ChatMessageDTO) Validate() error {
