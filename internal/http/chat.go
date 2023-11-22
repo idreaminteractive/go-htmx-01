@@ -2,9 +2,34 @@ package http
 
 import (
 	"main/internal/views"
+	"main/internal/views/dto"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
+
+func (s *Server) handleChatByIdPost(c echo.Context) error {
+
+	// creates a new message in the thread
+	var message dto.ChatMessageDTO
+	if err := c.Bind(&message); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	// var formErrors validation.Errors
+	if err := message.Validate(); err != nil {
+		// formErrors = err.(validation.Errors)
+		// hx return here
+		component := views.ChatMessageInput(views.ChatMessageInputProps{PreviousMessage: message.Message, Error: err})
+		// render w/ hx
+		c.Response().Header().Set("HX-Retarget", "messageInput")
+		c.Response().Header().Set("HX-Reswap", "outerHTML")
+
+		renderComponent(component, c)
+
+		return nil
+	}
+	return nil
+}
 
 func (s *Server) handleChatByIdGet(c echo.Context) error {
 	// load our data

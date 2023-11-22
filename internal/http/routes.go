@@ -28,6 +28,6 @@ func (s *Server) routes() {
 	chatGroup.Use(s.requireAuthMiddleware)
 	chatGroup.GET("", s.handleChatGet)
 	chatGroup.GET("/:id", s.handleChatByIdGet)
-	// chatGroup.POST("/:id", s.handleChatByIdPost)
+	chatGroup.POST("/:id", s.handleChatByIdPost)
 
 }
