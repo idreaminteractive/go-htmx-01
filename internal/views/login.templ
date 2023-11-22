@@ -18,7 +18,7 @@ templ LoginScreen (data LoginScreenProps) {
 						Email
 					</label>
 					<input
- 						class="flex h-10 border border-input text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full p-2 bg-gray-800 text-white rounded"
+ 						class={ "flex h-10 border border-input text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full p-2 bg-gray-800 text-white rounded", templ.KV("border-red-500", data.Errors["email"] != nil) }
  						id="email"
  						placeholder="Enter your email"
  						type="email"

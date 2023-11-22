@@ -1,12 +1,21 @@
 package views 
 
-import "strconv"
+import (
+	"strconv"
+	"fmt"
+)
 
 templ MessageCount( c int ) {
 	<span>{ strconv.Itoa(c) }</span>
 }
 
-templ ChatScreen () {
+type ChatScreenProps struct {
+	ActiveChatId        int // negative when not active
+	ActiveConversations []ConversationItemProps
+	CurrentMessages     []ChatMessageProps
+}
+
+templ ChatScreen (props ChatScreenProps) {
 	<div class="grid h-screen w-full lg:grid-cols-[280px_1fr] bg-gradient-to-r from-black via-gray-800 to-black">
 		<div class="hidden border-r bg-black/60 lg:block">
 			<div class="flex flex-col gap-2">
@@ -28,100 +37,129 @@ templ ChatScreen () {
 					<h2 class="ml-2 text-lg font-semibold text-white">Chat</h2>
 				</div>
 				<div class="flex-1 overflow-auto">
-					<div class="space-y-2 p-4">
-						<div class="flex items-center gap-2">
-							<img
- 								src="/placeholder.svg"
- 								width="40"
- 								height="40"
- 								class="rounded-full"
- 								alt="Contact"
- 								style="aspect-ratio: 40 / 40; object-fit: cover;"
-							/>
-							<div>
-								<h3 class="font-medium text-white">John Doe</h3>
-								<p class="text-gray-400">Hello, how are you?</p>
-							</div>
-						</div>
-						<div class="flex items-center gap-2">
-							<img
- 								src="/placeholder.svg"
- 								width="40"
- 								height="40"
- 								class="rounded-full"
- 								alt="Contact"
- 								style="aspect-ratio: 40 / 40; object-fit: cover;"
-							/>
-							<div>
-								<h3 class="font-medium text-white">Jane Smith</h3>
-								<p class="text-gray-400">Let's meet tomorrow</p>
-							</div>
-						</div>
-					</div>
+					@ConversationList(props.ActiveConversations)
 				</div>
 			</div>
 		</div>
 		<div class="flex flex-col bg-black/60">
-			<div class="flex-1 overflow-auto p-4">
-				<div class="border rounded-lg p-2 mb-2 bg-gray-700 text-white">
-					<p>Hello, how are you?</p>
-					<p class="text-xs text-gray-400">10:30 AM</p>
-				</div>
-				<div class="border rounded-lg p-2 mb-2 bg-blue-500 text-white">
-					<p>I'm good, thanks for asking.</p>
-					<p class="text-xs text-gray-200">10:31 AM</p>
-				</div>
-			</div>
-			<div class="border-t p-4">
-				<div class="flex items-center gap-2">
-					<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-						<svg
- 							xmlns="http://www.w3.org/2000/svg"
- 							width="24"
- 							height="24"
- 							viewBox="0 0 24 24"
- 							fill="none"
- 							stroke="currentColor"
- 							stroke-width="2"
- 							stroke-linecap="round"
- 							stroke-linejoin="round"
- 							class=" w-4 h-4 text-white"
-						>
-							<circle cx="12" cy="12" r="10"></circle>
-							<path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-							<line x1="9" x2="9.01" y1="9" y2="9"></line>
-							<line x1="15" x2="15.01" y1="9" y2="9"></line>
-						</svg>
-					</button>
-					<input
- 						class="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1 bg-gray-800 text-white"
- 						placeholder="Type a message"
-					/>
-					<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-						<svg
- 							xmlns="http://www.w3.org/2000/svg"
- 							width="24"
- 							height="24"
- 							viewBox="0 0 24 24"
- 							fill="none"
- 							stroke="currentColor"
- 							stroke-width="2"
- 							stroke-linecap="round"
- 							stroke-linejoin="round"
- 							class=" w-4 h-4 text-white"
-						>
-							<circle cx="12" cy="12" r="10"></circle>
-							<path d="m16 12-4-4-4 4"></path>
-							<path d="M12 16V8"></path>
-						</svg>
-					</button>
-				</div>
-			</div>
+			@ChatActivity(ChatActivityProps{ActiveChatId: props.ActiveChatId, CurrentMessages: props.CurrentMessages})
 		</div>
 		<div class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8">
 			<a href="/logout" class="btn btn-ghost inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4 rounded  text-white">
 				Logout
 			</a>
 		</div>
+	</div>
+}
+
+type ChatActivityProps struct {
+	ActiveChatId    int
+	CurrentMessages []ChatMessageProps
+}
+
+templ ChatActivity(props ChatActivityProps) {
+	if props.ActiveChatId < 0 {
+		// present a selector
+		<div class="flex justify-center items-center text-white">
+			<h2 class="text-2xl">Select an active chat or user from the side to start chatting!</h2>
+		</div>
+	} else {
+		@ChatMessageList(props.CurrentMessages)
+		<div class="border-t p-4">
+			<div class="flex items-center gap-2">
+				<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+					<svg
+ 						xmlns="http://www.w3.org/2000/svg"
+ 						width="24"
+ 						height="24"
+ 						viewBox="0 0 24 24"
+ 						fill="none"
+ 						stroke="currentColor"
+ 						stroke-width="2"
+ 						stroke-linecap="round"
+ 						stroke-linejoin="round"
+ 						class=" w-4 h-4 text-white"
+					>
+						<circle cx="12" cy="12" r="10"></circle>
+						<path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+						<line x1="9" x2="9.01" y1="9" y2="9"></line>
+						<line x1="15" x2="15.01" y1="9" y2="9"></line>
+					</svg>
+				</button>
+				<input
+ 					class="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1 bg-gray-800 text-white"
+ 					placeholder="Type a message"
+				/>
+				<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+					<svg
+ 						xmlns="http://www.w3.org/2000/svg"
+ 						width="24"
+ 						height="24"
+ 						viewBox="0 0 24 24"
+ 						fill="none"
+ 						stroke="currentColor"
+ 						stroke-width="2"
+ 						stroke-linecap="round"
+ 						stroke-linejoin="round"
+ 						class=" w-4 h-4 text-white"
+					>
+						<circle cx="12" cy="12" r="10"></circle>
+						<path d="m16 12-4-4-4 4"></path>
+						<path d="M12 16V8"></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+	}
+}
+
+templ ConversationList(items []ConversationItemProps) {
+	<div class="space-y-2 p-4">
+		for _, item := range  items {
+			@ConversationItem(item)
+		}
+	</div>
+}
+
+type ConversationItemProps struct {
+	Id          int
+	Handle      string
+	MessageText string
+}
+
+templ ConversationItem(props ConversationItemProps, ) {
+	<a href={ templ.URL(fmt.Sprintf("/chat/%d", props.Id)) } class="flex items-center p-2 gap-2 hover:bg-slate-800 transition duration-100">
+		<img
+ 			src={ fmt.Sprintf("https://i.pravatar.cc/100?t=%d", props.Id) }
+ 			width="40"
+ 			height="40"
+ 			class="rounded-full"
+ 			alt="Contact"
+ 			style="aspect-ratio: 40 / 40; object-fit: cover;"
+		/>
+		<div>
+			<h3 class="font-medium text-white">{ props.Handle }</h3>
+			<p class="text-gray-400">{ props.MessageText }</p>
+		</div>
+	</a>
+}
+
+type ChatMessageProps struct {
+	MessageText string
+	TimeStamp   string
+}
+
+templ ChatMessage(props ChatMessageProps) {
+	<div class="border rounded-lg p-2 mb-2 odd:bg-gray-700 even:bg-blue-500 text-white">
+		<p>{ props.MessageText }</p>
+		<p class="text-xs text-gray-400">{ props.TimeStamp }</p>
+	</div>
+}
+
+templ ChatMessageList(messages []ChatMessageProps) {
+	<div class="flex-1 overflow-auto p-4 ">
+		for _, message := range messages {
+			@ChatMessage(message)
+		}
 	</div>
 }

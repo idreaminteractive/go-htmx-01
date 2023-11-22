@@ -27,5 +27,7 @@ func (s *Server) routes() {
 	chatGroup := s.echo.Group("/chat")
 	chatGroup.Use(s.requireAuthMiddleware)
 	chatGroup.GET("", s.handleChatGet)
+	chatGroup.GET("/:id", s.handleChatByIdGet)
+	// chatGroup.POST("/:id", s.handleChatByIdPost)
 
 }
