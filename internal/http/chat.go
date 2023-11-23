@@ -1,11 +1,11 @@
 package http
 
 import (
-	"fmt"
 	"main/internal/views"
 	"main/internal/views/dto"
 	"net/http"
 
+	"github.com/davecgh/go-spew/spew"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/labstack/echo/v4"
 )
@@ -69,11 +69,11 @@ func (s *Server) handleChatGet(c echo.Context) error {
 
 	}
 
-	fmt.Printf("%+v", data)
+	spew.Dump(data)
 	// ActiveConversations := []views.ConversationItemProps{}
 	// for _, conversation := range data {
 	// 	// get first message from NOT me
-	// 	fmt.Println(reflect.TypeOf(conversation.))
+
 	// 	// ActiveConversations = append(ActiveConversations, views.ConversationItemProps{
 	// 	// 	Id: int(conversation.ConversationID),
 

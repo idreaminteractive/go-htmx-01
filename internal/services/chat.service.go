@@ -34,6 +34,8 @@ type ConversationMessages struct {
 
 type Conversation struct {
 	Id       int
+	Handle   string
+	UserId   int
 	Messages []ConversationMessages
 }
 
@@ -47,6 +49,7 @@ func (cs *ChatService) GetConversationsForUser(userId int) ([]Conversation, erro
 	}
 
 	// ok - so our return will actually be conversation ID + then the return in a struct
+	// note, some stuff may be fasyter, but this is likely the safest
 	output := []Conversation{}
 	for _, c := range conversations {
 		var cm []ConversationMessages
@@ -55,8 +58,11 @@ func (cs *ChatService) GetConversationsForUser(userId int) ([]Conversation, erro
 			logrus.Error(err)
 			continue
 		}
+
 		output = append(output, Conversation{
 			Id:       int(c.ConversationID),
+			Handle:   c.Handle,
+			UserId:   int(c.UserID),
 			Messages: cm,
 		})
 

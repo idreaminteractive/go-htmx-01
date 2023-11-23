@@ -28,7 +28,8 @@ where uc.user_id = ? and uc.conversation_id = m.conversation_id and uc.user_id =
 -- name: GetConversationsList :many
 select
   uc.conversation_id, 
-
+u.handle,
+u.id as user_id,
   json_group_array(json_object(
     'message_id', m.id,
     'content', m.content,
@@ -40,6 +41,9 @@ select
 from
   user_conversation uc
     join (select messages.id, messages.created_at, messages.conversation_id, messages.content, messages.user_id, u.handle from messages, user u where u.id = messages.user_id  order by messages.created_at desc) as m on m.conversation_id = uc.conversation_id
+    -- get the other user in the conversation who is NOT me.
+    
+    join user u on uc.user_id = u.id 
     where uc.user_id = ?
     group by uc.conversation_id
 order by

@@ -147,7 +147,8 @@ func (q *Queries) GetConversationsForUser(ctx context.Context, userID int64) ([]
 const getConversationsList = `-- name: GetConversationsList :many
 select
   uc.conversation_id, 
-
+u.handle,
+u.id as user_id,
   json_group_array(json_object(
     'message_id', m.id,
     'content', m.content,
@@ -159,6 +160,8 @@ select
 from
   user_conversation uc
     join (select messages.id, messages.created_at, messages.conversation_id, messages.content, messages.user_id, u.handle from messages, user u where u.id = messages.user_id  order by messages.created_at desc) as m on m.conversation_id = uc.conversation_id
+    -- join  (select uconv.conversation_id, uconv.user_id, u.handle from user u, user_conversation uconv where uconv.user_id != u.id and uconv.conversation_id = uc.conversation_id) as uconv on uc.conversation_id = uconv.conversation_id
+    join user u on uc.user_id = u.id 
     where uc.user_id = ?
     group by uc.conversation_id
 order by
@@ -169,6 +172,8 @@ limit
 
 type GetConversationsListRow struct {
 	ConversationID       int64
+	Handle               string
+	UserID               int64
 	ConversationMessages interface{}
 }
 
@@ -181,7 +186,12 @@ func (q *Queries) GetConversationsList(ctx context.Context, userID int64) ([]Get
 	var items []GetConversationsListRow
 	for rows.Next() {
 		var i GetConversationsListRow
-		if err := rows.Scan(&i.ConversationID, &i.ConversationMessages); err != nil {
+		if err := rows.Scan(
+			&i.ConversationID,
+			&i.Handle,
+			&i.UserID,
+			&i.ConversationMessages,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
