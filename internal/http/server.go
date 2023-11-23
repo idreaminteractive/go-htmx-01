@@ -90,7 +90,7 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 
 	sl.AuthenticationService = services.InitAuthService(&sl, queries)
 	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
-
+	sl.ChatService = services.InitChatService(&sl, queries)
 	// initialize the rest of our services
 	s := &Server{
 		echo:     e,

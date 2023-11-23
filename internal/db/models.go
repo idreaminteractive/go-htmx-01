@@ -5,11 +5,13 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
 type Conversation struct {
 	ID        int64
+	Topic     sql.NullString
 	CreatedAt time.Time
 }
 

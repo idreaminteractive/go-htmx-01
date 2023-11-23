@@ -9,6 +9,40 @@ import (
 	"context"
 )
 
+const createConversation = `-- name: CreateConversation :one
+insert into conversation (topic) values ("") returning  id, topic, created_at
+`
+
+func (q *Queries) CreateConversation(ctx context.Context) (Conversation, error) {
+	row := q.db.QueryRowContext(ctx, createConversation)
+	var i Conversation
+	err := row.Scan(&i.ID, &i.Topic, &i.CreatedAt)
+	return i, err
+}
+
+const createMessage = `-- name: CreateMessage :one
+insert into messages (user_id, conversation_id, content) values (?, ?, ?) returning id, conversation_id, user_id, content, created_at
+`
+
+type CreateMessageParams struct {
+	UserID         int64
+	ConversationID int64
+	Content        string
+}
+
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
+	row := q.db.QueryRowContext(ctx, createMessage, arg.UserID, arg.ConversationID, arg.Content)
+	var i Message
+	err := row.Scan(
+		&i.ID,
+		&i.ConversationID,
+		&i.UserID,
+		&i.Content,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 insert into user (
   password, email, handle
@@ -67,6 +101,100 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const getConversationsForUser = `-- name: GetConversationsForUser :many
+select m.content, m.id, m.user_id, u.handle, u.id 
+from user_conversation uc, messages m, user u 
+where uc.user_id = ? and uc.conversation_id = m.conversation_id and uc.user_id = u.id
+`
+
+type GetConversationsForUserRow struct {
+	Content string
+	ID      int64
+	UserID  int64
+	Handle  string
+	ID_2    int64
+}
+
+func (q *Queries) GetConversationsForUser(ctx context.Context, userID int64) ([]GetConversationsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getConversationsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetConversationsForUserRow
+	for rows.Next() {
+		var i GetConversationsForUserRow
+		if err := rows.Scan(
+			&i.Content,
+			&i.ID,
+			&i.UserID,
+			&i.Handle,
+			&i.ID_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getConversationsList = `-- name: GetConversationsList :many
+select
+  uc.conversation_id, 
+
+  json_group_array(json_object(
+    'message_id', m.id,
+    'content', m.content,
+    'user_id', m.user_id,
+    'handle', m.handle,
+    'created_at', m.created_at
+   )) as conversation_messages
+   
+from
+  user_conversation uc
+    join (select messages.id, messages.created_at, messages.conversation_id, messages.content, messages.user_id, u.handle from messages, user u where u.id = messages.user_id  order by messages.created_at desc) as m on m.conversation_id = uc.conversation_id
+    where uc.user_id = ?
+    group by uc.conversation_id
+order by
+  uc.conversation_id
+limit
+  10
+`
+
+type GetConversationsListRow struct {
+	ConversationID       int64
+	ConversationMessages interface{}
+}
+
+func (q *Queries) GetConversationsList(ctx context.Context, userID int64) ([]GetConversationsListRow, error) {
+	rows, err := q.db.QueryContext(ctx, getConversationsList, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetConversationsListRow
+	for rows.Next() {
+		var i GetConversationsListRow
+		if err := rows.Scan(&i.ConversationID, &i.ConversationMessages); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 select id, email, handle, password, created_at from user 
 where email = ? limit 1
@@ -82,5 +210,21 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Password,
 		&i.CreatedAt,
 	)
+	return i, err
+}
+
+const linkUserToConversation = `-- name: LinkUserToConversation :one
+insert into user_conversation (user_id, conversation_id) values (?, ?) returning user_id, conversation_id
+`
+
+type LinkUserToConversationParams struct {
+	UserID         int64
+	ConversationID int64
+}
+
+func (q *Queries) LinkUserToConversation(ctx context.Context, arg LinkUserToConversationParams) (UserConversation, error) {
+	row := q.db.QueryRowContext(ctx, linkUserToConversation, arg.UserID, arg.ConversationID)
+	var i UserConversation
+	err := row.Scan(&i.UserID, &i.ConversationID)
 	return i, err
 }

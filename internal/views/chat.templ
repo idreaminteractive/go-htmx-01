@@ -3,6 +3,7 @@ package views
 import (
 	"strconv"
 	"fmt"
+	"github.com/go-ozzo/ozzo-validation/v4"
 )
 
 templ MessageCount( c int ) {
@@ -43,7 +44,7 @@ templ ChatScreen (props ChatScreenProps) {
 				</div>
 			</div>
 		</div>
-		<div class="flex flex-col bg-black/60">
+		<div id="chatActivity" class="flex flex-col bg-black/60">
 			@ChatActivity(ChatActivityProps{ActiveChatId: props.ActiveChatId, CurrentMessages: props.CurrentMessages})
 		</div>
 		<div class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8">
@@ -68,7 +69,7 @@ templ ChatActivity(props ChatActivityProps) {
 	} else {
 		@ChatMessageList(props.CurrentMessages)
 		<div class="border-t p-4">
-			<div class="flex items-center gap-2">
+			<div class="flex items-start gap-2 pb-4 ">
 				<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
 					<svg
  						xmlns="http://www.w3.org/2000/svg"
@@ -97,39 +98,41 @@ templ ChatActivity(props ChatActivityProps) {
 type ChatMessageFormProps struct {
 	ActiveChatId    int
 	PreviousMessage string
-	Error           error
+	Errors          validation.Errors
 }
 
 templ ChatMessageForm(props ChatMessageFormProps) {
-	<form id="messageForm" method="post" action={ templ.URL(fmt.Sprintf("/chat/%d", props.ActiveChatId)) }>
-		<input
- 			name="message"
- 			class={ "flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1 bg-gray-800 text-white", templ.KV("border-red-500", props.Error != nil) }
- 			placeholder="Type a message"
- 			value={ props.PreviousMessage }
-		/>
-		if props.Error != nil {
-			<p class="text-red-500 text-xs mt-1">{ props.Error.Error() }</p>
+	<span id="messageForm" class="w-full">
+		<form class="w-full flex" method="post" action={ templ.URL(fmt.Sprintf("/chat/%d", props.ActiveChatId)) }>
+			<input
+ 				name="message"
+ 				class={ "flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1 bg-gray-800 text-white", templ.KV("border-red-500", props.Errors != nil) }
+ 				placeholder="Type a message"
+ 				value={ props.PreviousMessage }
+			/>
+			<button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+				<svg
+ 					xmlns="http://www.w3.org/2000/svg"
+ 					width="24"
+ 					height="24"
+ 					viewBox="0 0 24 24"
+ 					fill="none"
+ 					stroke="currentColor"
+ 					stroke-width="2"
+ 					stroke-linecap="round"
+ 					stroke-linejoin="round"
+ 					class="w-4 h-4 text-white"
+				>
+					<circle cx="12" cy="12" r="10"></circle>
+					<path d="m16 12-4-4-4 4"></path>
+					<path d="M12 16V8"></path>
+				</svg>
+			</button>
+		</form>
+		if props.Errors != nil {
+			<p class="text-red-500 basis-full text-xs mt-1">{ props.Errors["message"].Error() }</p>
 		}
-		<button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-			<svg
- 				xmlns="http://www.w3.org/2000/svg"
- 				width="24"
- 				height="24"
- 				viewBox="0 0 24 24"
- 				fill="none"
- 				stroke="currentColor"
- 				stroke-width="2"
- 				stroke-linecap="round"
- 				stroke-linejoin="round"
- 				class="w-4 h-4 text-white"
-			>
-				<circle cx="12" cy="12" r="10"></circle>
-				<path d="m16 12-4-4-4 4"></path>
-				<path d="M12 16V8"></path>
-			</svg>
-		</button>
-	</form>
+	</span>
 }
 
 templ ConversationList(items []ConversationItemProps) {
@@ -147,7 +150,8 @@ type ConversationItemProps struct {
 }
 
 templ ConversationItem(props ConversationItemProps, ) {
-	<a href={ templ.URL(fmt.Sprintf("/chat/%d", props.Id)) } class="flex items-center p-2 gap-2 hover:bg-slate-800 transition duration-100">
+	// auto swap inner stuff to new page
+	<a hx-target="#chatActivity" hx-push-url="true" hx-swap="outerHTML" hx-select="#chatActivity" hx-get={ fmt.Sprintf("/chat/%d", props.Id) } class="flex items-center p-2 gap-2 hover:bg-slate-800 transition duration-100">
 		<img
  			src={ fmt.Sprintf("https://i.pravatar.cc/100?t=%d", props.Id) }
  			width="40"

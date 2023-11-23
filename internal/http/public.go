@@ -69,7 +69,10 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 			LastSubmission: user,
 			Errors:         formErrors,
 		})
-		renderComponent(views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Login"}), c)
+		// JUst the tip
+		c.Response().Header().Set("HX-Retarget", "#loginScreen")
+		c.Response().Header().Set("HX-Reswap", "outerHTML")
+		renderComponent(component, c)
 		return nil
 	}
 
@@ -83,7 +86,9 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 				"email": validation.NewError("", "Invalid email or password"),
 			},
 		})
-		renderComponent(views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Login"}), c)
+		c.Response().Header().Set("HX-Retarget", "#loginScreen")
+		c.Response().Header().Set("HX-Reswap", "outerHTML")
+		renderComponent(component, c)
 		return nil
 	}
 
@@ -162,8 +167,9 @@ func (s *Server) handleRegisterPost(c echo.Context) error {
 
 	if formErrors.Filter() != nil {
 		component := views.RegisterForm(views.RegisterFormData{Previous: reg, Errors: formErrors})
-		base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Register"})
-		renderComponent(base, c)
+		c.Response().Header().Set("HX-Retarget", "#registerForm")
+		c.Response().Header().Set("HX-Reswap", "outerHTML")
+		renderComponent(component, c)
 		return nil
 
 	}

@@ -17,6 +17,7 @@ DROP TABLE if exists conversation;
 
 create table if not exists conversation (
     id integer primary key autoincrement,
+    topic text,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

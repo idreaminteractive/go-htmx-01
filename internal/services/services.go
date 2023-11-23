@@ -6,6 +6,7 @@ type ServiceLocator struct {
 
 	SessionService        ISessionService
 	AuthenticationService *AuthenticationService
+	ChatService           *ChatService
 
 	// add our chat service
 }
