@@ -44,9 +44,7 @@ templ ChatScreen (props ChatScreenProps) {
 				</div>
 			</div>
 		</div>
-		<div id="chatActivity" class="flex flex-col bg-black/60">
-			@ChatActivity(ChatActivityProps{ActiveChatId: props.ActiveChatId, CurrentMessages: props.CurrentMessages})
-		</div>
+		@ChatActivity(ChatActivityProps{ActiveChatId: props.ActiveChatId, CurrentMessages: props.CurrentMessages})
 		<div class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8">
 			<a href="/logout" class="btn btn-ghost inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4 rounded  text-white">
 				Logout
@@ -61,38 +59,40 @@ type ChatActivityProps struct {
 }
 
 templ ChatActivity(props ChatActivityProps) {
-	if props.ActiveChatId < 0 {
-		// present a selector
-		<div class="flex justify-center items-center text-white">
-			<h2 class="text-2xl">Select an active chat or user from the side to start chatting!</h2>
-		</div>
-	} else {
-		@ChatMessageList(props.CurrentMessages)
-		<div class="border-t p-4">
-			<div class="flex items-start gap-2 pb-4 ">
-				<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
-					<svg
- 						xmlns="http://www.w3.org/2000/svg"
- 						width="24"
- 						height="24"
- 						viewBox="0 0 24 24"
- 						fill="none"
- 						stroke="currentColor"
- 						stroke-width="2"
- 						stroke-linecap="round"
- 						stroke-linejoin="round"
- 						class=" w-4 h-4 text-white"
-					>
-						<circle cx="12" cy="12" r="10"></circle>
-						<path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-						<line x1="9" x2="9.01" y1="9" y2="9"></line>
-						<line x1="15" x2="15.01" y1="9" y2="9"></line>
-					</svg>
-				</button>
-				@ChatMessageForm(ChatMessageFormProps{ActiveChatId: props.ActiveChatId})
+	<div id="chatActivity" class="flex flex-col bg-black/60">
+		if props.ActiveChatId < 0 {
+			// present a selector
+			<div class="flex justify-center items-center text-white">
+				<h2 class="text-2xl">Select an active chat or user from the side to start chatting!</h2>
 			</div>
-		</div>
-	}
+		} else {
+			@ChatMessageList(props.CurrentMessages)
+			<div class="border-t p-4">
+				<div class="flex items-start gap-2 pb-4 ">
+					<button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+						<svg
+ 							xmlns="http://www.w3.org/2000/svg"
+ 							width="24"
+ 							height="24"
+ 							viewBox="0 0 24 24"
+ 							fill="none"
+ 							stroke="currentColor"
+ 							stroke-width="2"
+ 							stroke-linecap="round"
+ 							stroke-linejoin="round"
+ 							class=" w-4 h-4 text-white"
+						>
+							<circle cx="12" cy="12" r="10"></circle>
+							<path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+							<line x1="9" x2="9.01" y1="9" y2="9"></line>
+							<line x1="15" x2="15.01" y1="9" y2="9"></line>
+						</svg>
+					</button>
+					@ChatMessageForm(ChatMessageFormProps{ActiveChatId: props.ActiveChatId})
+				</div>
+			</div>
+		}
+	</div>
 }
 
 type ChatMessageFormProps struct {
@@ -169,6 +169,8 @@ templ ConversationItem(props ConversationItemProps, ) {
 
 type ChatMessageProps struct {
 	MessageText string
+	Handle      string
+	UserId      int
 	TimeStamp   string
 }
 

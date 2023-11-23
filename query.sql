@@ -54,3 +54,7 @@ limit
 
 -- name: CreateMessage :one
 insert into messages (user_id, conversation_id, content) values (?, ?, ?) returning *;
+
+
+-- name: GetOtherConversationUser :one
+select u.id, u.handle from user u, user_conversation uc where u.id = uc.user_id and uc.conversation_id=? and u.id != ? limit 1;

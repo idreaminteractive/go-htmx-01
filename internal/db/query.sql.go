@@ -160,7 +160,8 @@ u.id as user_id,
 from
   user_conversation uc
     join (select messages.id, messages.created_at, messages.conversation_id, messages.content, messages.user_id, u.handle from messages, user u where u.id = messages.user_id  order by messages.created_at desc) as m on m.conversation_id = uc.conversation_id
-    -- join  (select uconv.conversation_id, uconv.user_id, u.handle from user u, user_conversation uconv where uconv.user_id != u.id and uconv.conversation_id = uc.conversation_id) as uconv on uc.conversation_id = uconv.conversation_id
+    -- get the other user in the conversation who is NOT me.
+    
     join user u on uc.user_id = u.id 
     where uc.user_id = ?
     group by uc.conversation_id
@@ -203,6 +204,27 @@ func (q *Queries) GetConversationsList(ctx context.Context, userID int64) ([]Get
 		return nil, err
 	}
 	return items, nil
+}
+
+const getOtherConversationUser = `-- name: GetOtherConversationUser :one
+select u.id, u.handle from user u, user_conversation uc where u.id = uc.user_id and uc.conversation_id=? and u.id != ? limit 1
+`
+
+type GetOtherConversationUserParams struct {
+	ConversationID int64
+	ID             int64
+}
+
+type GetOtherConversationUserRow struct {
+	ID     int64
+	Handle string
+}
+
+func (q *Queries) GetOtherConversationUser(ctx context.Context, arg GetOtherConversationUserParams) (GetOtherConversationUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getOtherConversationUser, arg.ConversationID, arg.ID)
+	var i GetOtherConversationUserRow
+	err := row.Scan(&i.ID, &i.Handle)
+	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one

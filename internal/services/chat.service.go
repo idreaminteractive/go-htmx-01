@@ -71,3 +71,18 @@ func (cs *ChatService) GetConversationsForUser(userId int) ([]Conversation, erro
 	return output, nil
 
 }
+
+type otherUserReturn struct {
+	Handle string
+	Id     int
+}
+
+func (cs *ChatService) GetOtherUserInConversation(userId, conversationId int) (*otherUserReturn, error) {
+	ctx := context.Background()
+	data, err := cs.queries.GetOtherConversationUser(ctx, db.GetOtherConversationUserParams{ConversationID: int64(conversationId), ID: int64(userId)})
+	if err != nil {
+		logrus.Error(err)
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+	return &otherUserReturn{Handle: data.Handle, Id: int(data.ID)}, nil
+}

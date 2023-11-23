@@ -4,6 +4,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -23,6 +24,8 @@ func (s *Server) requireAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			logrus.Error("Not logged in")
 			return c.Redirect(http.StatusFound, "/login")
 		}
+		// todo - add id to ctx
+		c.SetRequest(c.Request().WithContext(context.WithValue(c.Request().Context(), "userId", sess.UserId)))
 
 		return next(c)
 	}
