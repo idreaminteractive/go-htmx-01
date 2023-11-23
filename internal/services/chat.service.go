@@ -100,3 +100,15 @@ func (cs *ChatService) AddMessageToConversation(userId, conversationId int, cont
 	// we made dat message
 	return &msg, nil
 }
+
+func (cs *ChatService) GetTotalMessagCount() (int64, error) {
+	ctx := context.Background()
+
+	count, err := cs.queries.GetTotalNumMessages(ctx)
+	if err != nil {
+		logrus.Error(err)
+		return 0, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+	// we made dat message
+	return count, nil
+}

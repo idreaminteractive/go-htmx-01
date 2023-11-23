@@ -96,3 +96,7 @@ What is the best approach for our structure of the application?
     https://medium.com/@kyodo-tech/lindy-approach-to-web-development-htmx-and-go-809bdfdf2279
 
     https://www.youtube.com/watch?v=F9H6vYelYyU
+
+
+----
+docker run --rm -v /etc/hosts:/etc/hosts --net=host skandyla/wrk -t5 -c10 -d30  http://localhost:8080

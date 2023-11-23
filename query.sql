@@ -14,6 +14,9 @@ where email = ? limit 1;
 -- name: GetAllUsers :many
 select * from user;
 
+-- name: GetTotalNumMessages :one
+select count(id) from messages; 
+
 -- name: CreateConversation :one
 insert into conversation (topic) values ("") returning  *;
 

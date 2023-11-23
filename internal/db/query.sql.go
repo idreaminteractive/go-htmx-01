@@ -227,6 +227,17 @@ func (q *Queries) GetOtherConversationUser(ctx context.Context, arg GetOtherConv
 	return i, err
 }
 
+const getTotalNumMessages = `-- name: GetTotalNumMessages :one
+select count(id) from messages
+`
+
+func (q *Queries) GetTotalNumMessages(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getTotalNumMessages)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 select id, email, handle, password, created_at from user 
 where email = ? limit 1

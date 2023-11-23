@@ -25,23 +25,14 @@ func (s *Server) handleLogoutGet(c echo.Context) error {
 // let's mirror our current live version that pulls in the stuff
 func (s *Server) handleRootGet(c echo.Context) error {
 
-	// get our public notes
-	// if notes, err := s.services.NotesService.GetPublicNotes(); err != nil {
-	// 	return echo.NewHTTPError(http.StatusInternalServerError, err)
-	// } else {
-	// 	csrf_value := getCSRFValueFromContext(c)
-	// 	body := views.Home(views.HomePageData{Notes: notes})
-	// 	renderComponent(
-	// 		views.Base(
-	// 			views.BaseData{
-	// 				Body:  body,
-	// 				CSRF:  csrf_value,
-	// 				Title: "GoNotes",
-	// 			}),
-	// 		c)
-	// }
+	// get our message count
+
 	csrf_value := getCSRFValueFromContext(c)
-	body := views.Root()
+	count, err := s.services.ChatService.GetTotalMessagCount()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	body := views.Root(count)
 
 	renderComponent(
 		views.Base(
