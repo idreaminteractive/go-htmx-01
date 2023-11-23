@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"main/internal/db"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
 )
 
@@ -85,4 +86,17 @@ func (cs *ChatService) GetOtherUserInConversation(userId, conversationId int) (*
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 	return &otherUserReturn{Handle: data.Handle, Id: int(data.ID)}, nil
+}
+
+func (cs *ChatService) AddMessageToConversation(userId, conversationId int, content string) (*db.Message, error) {
+	ctx := context.Background()
+	spew.Dump(userId)
+	spew.Dump(conversationId)
+	msg, err := cs.queries.CreateMessage(ctx, db.CreateMessageParams{UserID: int64(userId), ConversationID: int64(conversationId), Content: content})
+	if err != nil {
+		logrus.Error(err)
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+	// we made dat message
+	return &msg, nil
 }

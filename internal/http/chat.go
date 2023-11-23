@@ -13,6 +13,11 @@ import (
 
 func (s *Server) handleChatByIdPost(c echo.Context) error {
 
+	chatIdString := c.Param("id")
+	chatId, err := strconv.Atoi(chatIdString)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
 	// creates a new message in the thread
 	var message dto.ChatMessageDTO
 	if err := c.Bind(&message); err != nil {
@@ -22,7 +27,7 @@ func (s *Server) handleChatByIdPost(c echo.Context) error {
 	if err := message.Validate(); err != nil {
 		formErrors := err.(validation.Errors)
 		// hx return here
-		component := views.ChatMessageForm(views.ChatMessageFormProps{PreviousMessage: message.Message, Errors: formErrors})
+		component := views.ChatMessageForm(views.ChatMessageFormProps{ActiveChatId: chatId, PreviousMessage: message.Message, Errors: formErrors})
 		// render w/ hx
 		c.Response().Header().Set("HX-Retarget", "#messageForm")
 		c.Response().Header().Set("HX-Reswap", "outerHTML")
@@ -31,7 +36,49 @@ func (s *Server) handleChatByIdPost(c echo.Context) error {
 
 		return nil
 	}
+	//  no errors, message was goot.
+	userId := c.Request().Context().Value("userId").(int)
+
+	// add dat message
+	_, err = s.services.ChatService.AddMessageToConversation(userId, chatId, message.Message)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	var currentMessages []views.ChatMessageProps
+	messages, err := s.services.ChatService.GetConversationsForUser(userId)
+	if err != nil {
+
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+
+	}
+	for _, conv := range messages {
+		if conv.Id == chatId {
+			for _, message := range conv.Messages {
+				currentMessages = append(currentMessages, views.ChatMessageProps{
+					MessageText: message.Content,
+					Handle:      message.Handle,
+					UserId:      message.UserId,
+					TimeStamp:   message.CreatedAt,
+				})
+			}
+
+		}
+	}
+
+	cap := views.ChatActivityProps{
+		ActiveChatId:    chatId,
+		CurrentMessages: currentMessages,
+	}
+	// re-render w/ new datas
+	// just render chat activity + only use base data
+	component := views.ChatActivity(cap)
+	// taerget it
+	c.Response().Header().Set("HX-Retarget", "#chatActivity")
+	c.Response().Header().Set("HX-Reswap", "outerHTML")
+
+	renderComponent(component, c)
 	return nil
+
 }
 
 func (s *Server) handleChatByIdGet(c echo.Context) error {
