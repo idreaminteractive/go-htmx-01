@@ -24,9 +24,8 @@ const ShutdownTimeout = 1 * time.Second
 
 // i want to
 type Server struct {
-	echo   *echo.Echo
-	config *config.EnvConfig
-
+	echo     *echo.Echo
+	config   *config.EnvConfig
 	services *services.ServiceLocator
 }
 

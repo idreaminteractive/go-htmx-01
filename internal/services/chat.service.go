@@ -1,28 +1,30 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+
 	"main/internal/db"
+	"main/internal/views"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
 )
 
 type ChatService struct {
-	sl      *ServiceLocator
-	queries *db.Queries
+	sl             *ServiceLocator
+	queries        *db.Queries
+	MessageChannel chan []byte
 }
 
 func InitChatService(sl *ServiceLocator, queries *db.Queries) *ChatService {
 	return &ChatService{
-		sl:      sl,
-		queries: queries,
+		sl:             sl,
+		queries:        queries,
+		MessageChannel: make(chan []byte),
 	}
-}
-
-func (cs *ChatService) StartConversation() {
-
 }
 
 type ConversationMessages struct {
@@ -131,6 +133,25 @@ func (cs *ChatService) AddMessageToConversation(userId, conversationId int, cont
 		logrus.Error(err)
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
+
+	// send message count to sse
+	count, err := cs.queries.GetTotalNumMessages(ctx)
+	if err != nil {
+		logrus.Error(err)
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+
+	// there is likely a simpler way to get this into a diff writer.
+	buf := bytes.NewBuffer([]byte{})
+	views.MessageCount(int(count)).Render(context.Background(), buf)
+
+	s, err := io.ReadAll(buf)
+	if err != nil {
+		logrus.Error(err)
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+	cs.MessageChannel <- s
+
 	// we made dat message
 	return &msg, nil
 }
