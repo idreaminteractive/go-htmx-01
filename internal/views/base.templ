@@ -16,9 +16,13 @@ templ Base(data BaseData) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link href="/static/css/styles.css" rel="stylesheet"/>
-			<link rel="icon" href="static/images/favicon.ico"/>
+			<link rel="icon" href="/static/images/favicon.ico"/>
 			<script type="text/javascript" src="/static/js/htmx.min.js"></script>
+			<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
 			<script type="text/javascript" src="/static/js/hyperscript.min.js"></script>
+			<script type="text/javascript">
+				htmx.logAll();
+			</script>
 		</head>
 		<body hx-headers={ fmt.Sprintf("{\"X-CSRFToken\": \"%s\"}", data.CSRF) } hx-boost="true">
 			{! data.Body }

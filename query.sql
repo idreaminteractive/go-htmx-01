@@ -1,72 +1,74 @@
--- name: GetNoteById :one
-SELECT * FROM note
-WHERE id = ? LIMIT 1;
-
--- name: ListNotes :many
-SELECT * FROM note
-ORDER BY id;
-
-
--- name: ListNotesForUser :many 
-SELECT (select count() from note) as count, * FROM note
- where note.user_id = ? ORDER BY note.created_at desc limit 10;
-
--- name: CreateNote :one
-INSERT INTO note (
-  content,
-  is_public,
-  user_id
-) VALUES (
-  ?, ?, ?
-)
-RETURNING *;
-
--- name: UpdateNote :exec
-UPDATE note
-set content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP
-WHERE id = ?
-RETURNING *;
-
--- name: DeleteNote :exec
-DELETE FROM note
-WHERE id = ?;
 
 
 -- name: CreateUser :one
 insert into user (
-  password, email
-) values (? , ?) returning *;
+  password, email, handle
+) values (? , ?, ?) returning *;
 
 
 -- name: GetUserByEmail :one
 select * from user 
 where email = ? limit 1; 
 
--- name: GetPublicNotes :many 
-select n.id, n.content, u.id, n.updated_at, u.email
-from note n, user u 
-where 
-  n.user_id = u.id and n.is_public = true;
-
--- test stuff
 
 -- name: GetAllUsers :many
 select * from user;
 
+-- name: GetTotalNumMessages :one
+select count(id) from messages; 
 
--- name: GetUserNoteAggregate :many
+-- name: CreateConversation :one
+insert into conversation (topic) values ("") returning  *;
+
+-- name: LinkUserToConversation :one
+insert into user_conversation (user_id, conversation_id) values (?, ?) returning *;
+
+-- name: GetConversationsForUser :many 
+select m.content, m.id, m.user_id, u.handle, u.id 
+from user_conversation uc, messages m, user u 
+where uc.user_id = ? and uc.conversation_id = m.conversation_id and uc.user_id = u.id;
+
+-- name: GetConversationsList :many
 select
-  user.id,
-  user.email,
+  uc.conversation_id, 
+u.handle,
+u.id as user_id,
   json_group_array(json_object(
-    'note_id', note.id,
-    'content', note.content
-   )) as notes,
-   count(*) as num_notes
+    'message_id', m.id,
+    'content', m.content,
+    'user_id', m.user_id,
+    'handle', m.handle,
+    'created_at', m.created_at
+   )) as conversation_messages
+   
 from
-  user join note on note.user_id = user.id
-  group by user.id
+  user_conversation uc
+    join (select messages.id, messages.created_at, messages.conversation_id, messages.content, messages.user_id, u.handle from messages, user u where u.id = messages.user_id  order by messages.created_at desc) as m on m.conversation_id = uc.conversation_id
+    -- get the other user in the conversation who is NOT me.
+    
+    join user u on uc.user_id = u.id 
+    where uc.user_id = ?
+    group by uc.conversation_id
 order by
-  user.id
+  uc.conversation_id
 limit
   10;
+
+
+-- name: CreateMessage :one
+insert into messages (user_id, conversation_id, content) values (?, ?, ?) returning *;
+
+
+-- name: GetOtherConversationUser :one
+select u.id, u.handle from user u, user_conversation uc where u.id = uc.user_id and uc.conversation_id=? and u.id != ? limit 1;
+
+
+-- name: PossibleConversationUsers :many 
+select u.id, u.handle from user u where u.id not in (
+select uc.user_id from user_conversation uc where uc.conversation_id in (
+  select  user_conversation.conversation_id 
+        from user_conversation 
+        where user_conversation.user_id = ?)
+and uc.user_id != ?)
+and u.id != ?
+

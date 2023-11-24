@@ -52,12 +52,56 @@ func (s *ServiceTestSuite) BeforeTest(suiteName, testName string) {
 
 }
 
-func (s *ServiceTestSuite) TestAuthenticateNewUser() {
+func (s *ServiceTestSuite) TestRegistrationSuccess() {
 	users, err := s.authService.queries.GetAllUsers(s.context)
 	s.Nil(err, "Error is not nil in getting users")
 	s.Equal(len(users), 0)
 	email, password := faker.Email(), faker.Password()
-	u, err := s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
+	u, err := s.authService.Register(dto.RegisterDTO{Handle: faker.Username(), Email: email, Password: password, ConfirmPassword: password})
+	s.Nil(err, "Error is not nil")
+	s.NotNil(u, "User does not exist")
+	s.Equal(u.Email, email)
+	// since it's hashed
+	s.NotEqual(u.Password, password)
+	users, err = s.authService.queries.GetAllUsers(s.context)
+	s.Nil(err, "Error is not nil in getting users")
+	s.Equal(1, len(users), "user was not created?")
+}
+
+func (s *ServiceTestSuite) TestRegistrationFailure() {
+	users, err := s.authService.queries.GetAllUsers(s.context)
+	s.Nil(err, "Error is not nil in getting users")
+	s.Equal(len(users), 0)
+
+	// create a user then try and create another with same email
+	email, password := faker.Email(), faker.Password()
+	u, err := s.authService.Register(dto.RegisterDTO{Handle: faker.Username(), Email: email, Password: password, ConfirmPassword: password})
+	s.Nil(err, "Error should  be nil")
+	s.NotNil(u, "User should not be nil")
+
+	u, err = s.authService.Register(dto.RegisterDTO{Handle: faker.Username(), Email: email, Password: password, ConfirmPassword: "confirm"})
+	s.NotNil(err, "Error is nil")
+	s.Nil(u, "User not created")
+
+	users, err = s.authService.queries.GetAllUsers(s.context)
+	s.Nil(err, "Error is not nil in getting users")
+	// Just the one
+	s.Equal(1, len(users), "Only 1 user should be created")
+
+}
+
+func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
+	users, err := s.authService.queries.GetAllUsers(s.context)
+	s.Nil(err, "Error is not nil in getting users")
+	s.Equal(len(users), 0)
+	email, password := faker.Email(), faker.Password()
+
+	// first need to register them
+	u, err := s.authService.Register(dto.RegisterDTO{Handle: faker.Username(), Email: email, Password: password, ConfirmPassword: password})
+	s.Nil(err, "Error should  be nil")
+	s.NotNil(u, "User should not be nil")
+
+	u, err = s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
 	s.Nil(err, "Error is not nil")
 	s.NotNil(u, "User does not exist")
 	s.Equal(u.Email, email)
@@ -68,35 +112,12 @@ func (s *ServiceTestSuite) TestAuthenticateNewUser() {
 	s.Equal(1, len(users), "user was not created?")
 
 }
-
-func (s *ServiceTestSuite) TestAuthenticateSuccessfulLogin() {
-	// make our user first
-	email, password := faker.Email(), faker.Password()
-	u, err := s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
-	s.Nil(err, "Error is not nil")
-	s.NotNil(u, "User does not exist")
-	s.Equal(u.Email, email)
-	users, err := s.authService.queries.GetAllUsers(s.context)
-	s.Nil(err, "Error is not nil in getting users")
-	s.Equal(len(users), 1)
-
-	u, err = s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
-	s.Nil(err, "Error is not nil")
-	s.NotNil(u, "User does not exist")
-	s.Equal(u.Email, email)
-
-	users, err = s.authService.queries.GetAllUsers(s.context)
-	s.Nil(err, "Error is not nil in getting users")
-	s.Equal(len(users), 1, "new user was created unintentionally")
-}
-
 func (s *ServiceTestSuite) TestBadPassword() {
-	// make our user first
 	email, password, badPassword := faker.Email(), faker.Password(), faker.Password()
-	u, err := s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: password})
-	s.Nil(err, "Error is not nil")
-	s.NotNil(u, "User does not exist")
-	s.Equal(u.Email, email)
+	// first need to register them
+	u, err := s.authService.Register(dto.RegisterDTO{Handle: faker.Username(), Email: email, Password: password, ConfirmPassword: password})
+	s.Nil(err, "Error should  be nil")
+	s.NotNil(u, "User should not be nil")
 
 	_, err = s.authService.Authenticate(dto.UserLoginDTO{Email: email, Password: badPassword})
 	s.NotNil(err, "Error is nil")

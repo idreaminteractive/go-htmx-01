@@ -7,7 +7,9 @@ A fancy notes app
 
 ## Todo
 
-
+- SQLC - does it check values when i change schemas?
+- setup base routes for views
+- 
 - Inlined struct for validation on posts + puts + deletes (type Data struct - inside the closure)
     - is this better?
 - Find more sane way to do templ files + structuring
@@ -94,3 +96,7 @@ What is the best approach for our structure of the application?
     https://medium.com/@kyodo-tech/lindy-approach-to-web-development-htmx-and-go-809bdfdf2279
 
     https://www.youtube.com/watch?v=F9H6vYelYyU
+
+
+----
+docker run --rm -v /etc/hosts:/etc/hosts --net=host skandyla/wrk -t5 -c10 -d30  http://localhost:8080

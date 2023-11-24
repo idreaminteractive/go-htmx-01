@@ -3,10 +3,21 @@
 SELECT 'up SQL query';
 PRAGMA foreign_keys=off;
 
+DROP TABLE if exists user;
+CREATE TABLE IF NOT EXISTS user( 
+   id integer primary key autoincrement,
+   email text not null,
+   handle text not null,
+   password text not null,
+   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
 DROP TABLE if exists conversation;
 
 create table if not exists conversation (
     id integer primary key autoincrement,
+    topic text,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -24,7 +35,7 @@ create table if not exists user_conversation (
 drop table if exists messages;
 
 create table if not exists messages (
-    id integer not null,
+    id integer primary key autoincrement,
     conversation_id integer not null,
     user_id integer not null,
     content text not null,

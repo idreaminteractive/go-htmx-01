@@ -1,0 +1,37 @@
+package components
+
+import (
+	"fmt"
+	"main/internal/views/helpers"
+)
+
+type ButtonType string
+
+const (
+	SubmitButton ButtonType = "submit"
+)
+
+type ButtonProps struct {
+	ButtonType ButtonType
+	Class      string
+	HTMXParams
+}
+
+type HTMXParams struct {
+	Get    string
+	Target string
+	Swap   string
+}
+
+templ Button(props ButtonProps) {
+	<button
+ 		if !helpers.IsEmptyOrWhiteSpace(props.Class) {
+			class={ props.Class }
+		}
+ 		if !helpers.IsEmptyOrWhiteSpace(props.Class) {
+			type={ fmt.Sprintf("%s", props.ButtonType) }
+		}
+	>
+		{ children... }
+	</button>
+}

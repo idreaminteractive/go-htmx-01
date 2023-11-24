@@ -43,6 +43,10 @@ tasks:
     cmds:
       - sqlc generate
 
+  studio:
+    cmds:
+      - sqlite_web -p 8088 /litefs/potato.db
+
   lint:
     cmds:
       - staticcheck cmd/main.go

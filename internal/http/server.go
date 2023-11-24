@@ -65,6 +65,8 @@ func setupEcho(config EchoSetupStruct) *echo.Echo {
 
 	// }
 
+	// wrap up
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Recover())
@@ -88,8 +90,7 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 
 	sl.AuthenticationService = services.InitAuthService(&sl, queries)
 	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
-	sl.NotesService = services.InitNotesService(&sl, queries)
-
+	sl.ChatService = services.InitChatService(&sl, queries)
 	// initialize the rest of our services
 	s := &Server{
 		echo:     e,

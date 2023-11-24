@@ -28,3 +28,4 @@ RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 RUN echo 'alias home="cd ${GITPOD_REPO_ROOT}"' | tee -a ~/.bashrc ~/.zshrc
 
+RUN pip install sqlite-web

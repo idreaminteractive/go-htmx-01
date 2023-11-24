@@ -3,97 +3,31 @@ package views
 import "main/internal/views/dto"
 import "github.com/go-ozzo/ozzo-validation/v4"
 
-// define structs to control stuff,
-// and have our handler build + pass stuff in!
-type LoginPageData struct {
-	LoginForm templ.Component
+type LoginScreenProps struct {
+	LastSubmission dto.UserLoginDTO
+	Errors         validation.Errors
 }
 
-templ LoginPage(data LoginPageData) {
-	<div class="min-h-screen flex items-center justify-center">
-		<div class="max-w-sm rounded-lg shadow-lg  p-6 space-y-6 border  border-gray-200">
-			<div class="space-y-2 text-center">
-				<h1 class="text-3xl font-bold">
-					Login
-				</h1>
-			</div>
-			{! data.LoginForm }
-		</div>
-	</div>
-}
-
-type LoginFormData struct {
-	Errors   validation.Errors
-	Defaults dto.UserLoginDTO
-}
-
-templ LoginForm (data LoginFormData) {
-	<form method="post" action="/login" hx-push-url="true" class="group">
-		<div class="space-y-4">
-			<div class="space-y-2">
-				<div class="form-control w-full max-w-xs">
-					<label class="label" for="email">
-						<span class="label-text">Email</span>
-					</label>
-					<input
- 						name="email"
- 						type="email"
- 						id="email"
- 						value={ data.Defaults.Email }
- 						placeholder="m@example.com"
- 						required
- 						class="input input-bordered w-full max-w-xs"
-					/>
-					if data.Errors != nil && data.Errors["email"] != nil {
-						<label class="label">
-							<span class="label-text-alt text-error ">{ data.Errors["email"].Error() }</span>
-						</label>
-					}
-				</div>
-				<div class="form-control w-full max-w-xs">
-					<label class="label" for="password">
-						<span class="label-text">
-							Password
-						</span>
-					</label>
-					<input
- 						name="password"
- 						id="password"
- 						required
- 						placeholder="Password"
- 						type="password"
- 						class="input input-bordered w-full max-w-xs peer "
-					/>
-					<span class="mt-2 hidden text-sm text-red-500 peer-[&amp;:not(:placeholder-shown):not(:focus):invalid]:block">
-						Password is required
-					</span>
-				</div>
-			</div>
-			<button type="submit" hx-indicator="#spinner" class="btn btn-primary w-full px-32">
-				<div class="flex items-center justify-center">
-					Login
-					<span class="loading loading-spinner htmx-indicator"></span>
-				</div>
-			</button>
-		</div>
-	</form>
-}
-
-templ LoginScreen () {
-	<div class="flex items-center justify-center h-screen bg-gradient-to-r from-black via-gray-800 to-black">
+templ LoginScreen (data LoginScreenProps) {
+	<div id="loginScreen" class="flex items-center justify-center h-screen bg-gradient-to-r from-black via-gray-800 to-black">
 		<div class="w-full max-w-md bg-black/60 p-8 rounded-lg">
 			<h1 class="text-2xl font-bold text-white mb-6 text-center">Login</h1>
-			<form class="space-y-4">
+			<form class="space-y-4" method="post" action="/login">
 				<div>
 					<label class="block text-gray-400 mb-2" for="email">
 						Email
 					</label>
 					<input
- 						class="flex h-10 border border-input text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full p-2 bg-gray-800 text-white rounded"
+ 						class={ "flex h-10 border border-input text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full p-2 bg-gray-800 text-white rounded", templ.KV("border-red-500", data.Errors["email"] != nil) }
  						id="email"
  						placeholder="Enter your email"
  						type="email"
+ 						name="email"
+ 						value={ data.LastSubmission.Email }
 					/>
+					if data.Errors["email"] != nil {
+						<p class="text-red-500 text-xs mt-1">{ data.Errors["email"].Error() }</p>
+					}
 				</div>
 				<div>
 					<label class="block text-gray-400 mb-2" for="password">
@@ -104,13 +38,15 @@ templ LoginScreen () {
  						id="password"
  						placeholder="Enter your password"
  						type="password"
+ 						name="password"
 					/>
 				</div>
 				<button
- 					class="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 px-4 w-full py-2 rounded bg-blue-500 text-white"
+ 					class="flex items-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 px-4 w-full py-2 rounded bg-blue-500 text-white"
  					type="submit"
 				>
-					Login
+					<span class="htmx-indicator relative left-1 loading loading-spinner"></span>
+					<span class="self-center w-full">Login</span>
 				</button>
 				<div class="text-center mt-4">
 					<p class="text-gray-400">Don't have an account?</p>
