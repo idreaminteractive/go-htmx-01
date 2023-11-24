@@ -11,9 +11,10 @@ templ MessageCount( c int ) {
 }
 
 type ChatScreenProps struct {
-	ActiveChatId        int // negative when not active
-	ActiveConversations []ConversationItemProps
-	CurrentMessages     []ChatMessageProps
+	ActiveChatId          int // negative when not active
+	PossibleConversations []PossibleConversationItemProps
+	ActiveConversations   []ConversationItemProps
+	CurrentMessages       []ChatMessageProps
 }
 
 templ ChatScreen (props ChatScreenProps) {
@@ -40,7 +41,10 @@ templ ChatScreen (props ChatScreenProps) {
 					</a>
 				</div>
 				<div class="flex-1 overflow-auto">
-					@ConversationList(props.ActiveConversations)
+					@ConversationList(ConversationListProps{
+						Items: props.ActiveConversations,
+						Possibles: props.PossibleConversations,
+					})
 				</div>
 			</div>
 		</div>
@@ -135,10 +139,18 @@ templ ChatMessageForm(props ChatMessageFormProps) {
 	</span>
 }
 
-templ ConversationList(items []ConversationItemProps) {
+type ConversationListProps struct {
+	Items     []ConversationItemProps
+	Possibles []PossibleConversationItemProps
+}
+
+templ ConversationList(props ConversationListProps) {
 	<div class="space-y-2 p-4">
-		for _, item := range  items {
+		for _, item := range  props.Items {
 			@ConversationItem(item)
+		}
+		for _, poss := range props.Possibles {
+			@PossibleConversationItem(poss)
 		}
 	</div>
 }
@@ -167,17 +179,43 @@ templ ConversationItem(props ConversationItemProps, ) {
 	</a>
 }
 
+type PossibleConversationItemProps struct {
+	Id     int
+	Handle string
+}
+
+templ PossibleConversationItem(props PossibleConversationItemProps) {
+	<form hx-post="/chat/new" class=" hover:bg-slate-800 transition duration-100">
+		<button type="submit" class="flex items-center p-2 gap-2">
+			<input type="hidden" name="userId" value={ fmt.Sprintf("%d", props.Id) }/>
+			<img
+ 				src={ fmt.Sprintf("https://i.pravatar.cc/100?t=%d", props.Id) }
+ 				width="40"
+ 				height="40"
+ 				class="rounded-full"
+ 				alt="Contact"
+ 				style="aspect-ratio: 40 / 40; object-fit: cover;"
+			/>
+			<div>
+				<h3 class="font-medium text-white">{ props.Handle }</h3>
+				<p class="text-green-500">Chat now!</p>
+			</div>
+		</button>
+	</form>
+}
+
 type ChatMessageProps struct {
 	MessageText string
 	Handle      string
 	UserId      int
+	IsOwn       bool
 	TimeStamp   string
 }
 
 templ ChatMessage(props ChatMessageProps) {
-	<div class="border rounded-lg p-2 mb-2 group odd:bg-gray-700 even:bg-blue-500 text-white">
+	<div class={ "border rounded-lg p-2 mb-2 group text-white", templ.KV("ml-10 bg-gray-700", props.IsOwn), templ.KV("mr-10 bg-blue-500", !props.IsOwn) }>
 		<p>{ props.Handle }: { props.MessageText }</p>
-		<p class="text-xs group-odd:text-gray-400 group-even:text-gray-900">{ props.TimeStamp }</p>
+		<p class={ "text-xs", templ.KV("text-gray-400", props.IsOwn), templ.KV("text-gray-900", !props.IsOwn) }>{ props.TimeStamp }</p>
 	</div>
 }
 

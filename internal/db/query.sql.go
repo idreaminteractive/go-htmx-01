@@ -271,3 +271,47 @@ func (q *Queries) LinkUserToConversation(ctx context.Context, arg LinkUserToConv
 	err := row.Scan(&i.UserID, &i.ConversationID)
 	return i, err
 }
+
+const possibleConversationUsers = `-- name: PossibleConversationUsers :many
+select u.id, u.handle from user u where u.id not in (
+select uc.user_id from user_conversation uc where uc.conversation_id in (
+  select  user_conversation.conversation_id 
+        from user_conversation 
+        where user_conversation.user_id = ?)
+and uc.user_id != ?)
+and u.id != ?
+`
+
+type PossibleConversationUsersParams struct {
+	UserID   int64
+	UserID_2 int64
+	ID       int64
+}
+
+type PossibleConversationUsersRow struct {
+	ID     int64
+	Handle string
+}
+
+func (q *Queries) PossibleConversationUsers(ctx context.Context, arg PossibleConversationUsersParams) ([]PossibleConversationUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, possibleConversationUsers, arg.UserID, arg.UserID_2, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PossibleConversationUsersRow
+	for rows.Next() {
+		var i PossibleConversationUsersRow
+		if err := rows.Scan(&i.ID, &i.Handle); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

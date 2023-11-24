@@ -78,6 +78,40 @@ type otherUserReturn struct {
 	Id     int
 }
 
+func (cs *ChatService) CreateNewConversation(userIdOne, userIdTwo int) (*db.Conversation, error) {
+	ctx := context.Background()
+	// how do i get a txn here?
+	conv, err := cs.queries.CreateConversation(ctx)
+	if err != nil {
+		logrus.Error(err)
+		// user exists already
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+
+	_, err = cs.queries.LinkUserToConversation(ctx, db.LinkUserToConversationParams{UserID: int64(userIdOne), ConversationID: conv.ID})
+	if err != nil {
+		logrus.Error(err)
+
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+	_, err = cs.queries.LinkUserToConversation(ctx, db.LinkUserToConversationParams{UserID: int64(userIdTwo), ConversationID: conv.ID})
+	if err != nil {
+		logrus.Error(err)
+
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+
+	// also add in a message for good measure!
+	_, err = cs.queries.CreateMessage(ctx, db.CreateMessageParams{UserID: int64(userIdOne), ConversationID: conv.ID, Content: "Hello there!"})
+	if err != nil {
+		logrus.Error(err)
+
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+
+	return &conv, nil
+}
+
 func (cs *ChatService) GetOtherUserInConversation(userId, conversationId int) (*otherUserReturn, error) {
 	ctx := context.Background()
 	data, err := cs.queries.GetOtherConversationUser(ctx, db.GetOtherConversationUserParams{ConversationID: int64(conversationId), ID: int64(userId)})
@@ -111,4 +145,21 @@ func (cs *ChatService) GetTotalMessagCount() (int64, error) {
 	}
 	// we made dat message
 	return count, nil
+}
+
+func (cs *ChatService) GetUsersWithNoConversation(userId int) ([]db.PossibleConversationUsersRow, error) {
+	ctx := context.Background()
+
+	// it's all the same args, i feel like there's a better way... lol
+	possibles, err := cs.queries.PossibleConversationUsers(ctx, db.PossibleConversationUsersParams{
+		UserID:   int64(userId),
+		ID:       int64(userId),
+		UserID_2: int64(userId),
+	})
+	if err != nil {
+		logrus.Error(err)
+		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	}
+
+	return possibles, nil
 }

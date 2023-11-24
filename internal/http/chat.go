@@ -1,15 +1,48 @@
 package http
 
 import (
+	"fmt"
 	"main/internal/views"
 	"main/internal/views/dto"
 	"net/http"
 	"strconv"
 
+	"github.com/davecgh/go-spew/spew"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
+
+func (s *Server) handleChatNewPost(c echo.Context) error {
+
+	// make a new chat + redirect to it
+
+	// creates a new message in the thread
+	var newChat struct {
+		UserId string `form:"userId"`
+	}
+	if err := c.Bind(&newChat); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	otherUserId, err := strconv.Atoi(newChat.UserId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	spew.Dump(newChat)
+
+	//  no errors, message was goot.
+	userId := c.Request().Context().Value("userId").(int)
+	conv, err := s.services.ChatService.CreateNewConversation(userId, otherUserId)
+	spew.Dump(conv)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/chat/%d", conv.ID))
+	return nil
+}
 
 func (s *Server) handleChatByIdPost(c echo.Context) error {
 
@@ -55,6 +88,7 @@ func (s *Server) handleChatByIdPost(c echo.Context) error {
 		if conv.Id == chatId {
 			for _, message := range conv.Messages {
 				currentMessages = append(currentMessages, views.ChatMessageProps{
+					IsOwn:       message.UserId == userId,
 					MessageText: message.Content,
 					Handle:      message.Handle,
 					UserId:      message.UserId,
@@ -91,11 +125,11 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 
-	userId := c.Request().Context().Value("userId")
+	userId := c.Request().Context().Value("userId").(int)
 
 	// no matter what, i need my messages for this chat
 	var currentMessages []views.ChatMessageProps
-	messages, err := s.services.ChatService.GetConversationsForUser(userId.(int))
+	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
 
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -105,6 +139,7 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 		if conv.Id == chatId {
 			for _, message := range conv.Messages {
 				currentMessages = append(currentMessages, views.ChatMessageProps{
+					IsOwn:       message.UserId == userId,
 					MessageText: message.Content,
 					Handle:      message.Handle,
 					UserId:      message.UserId,
@@ -130,10 +165,26 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	// what about users we DON'T have a chat with? let's make it a post thing
+
+	possibles, err := s.services.ChatService.GetUsersWithNoConversation(userId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	var possibleData []views.PossibleConversationItemProps
+	for _, p := range possibles {
+		possibleData = append(possibleData, views.PossibleConversationItemProps{
+			Id:     int(p.ID),
+			Handle: p.Handle,
+		})
+	}
+
 	props := views.ChatScreenProps{
-		ActiveConversations: data,
-		ActiveChatId:        chatId,
-		CurrentMessages:     cap.CurrentMessages,
+		ActiveConversations:   data,
+		PossibleConversations: possibleData,
+		ActiveChatId:          chatId,
+		CurrentMessages:       cap.CurrentMessages,
 	}
 
 	component := views.ChatScreen(props)
@@ -186,11 +237,24 @@ func (s *Server) handleChatGet(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	userId := c.Request().Context().Value("userId").(int)
+	possibles, err := s.services.ChatService.GetUsersWithNoConversation(userId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 
+	var possibleData []views.PossibleConversationItemProps
+	for _, p := range possibles {
+		possibleData = append(possibleData, views.PossibleConversationItemProps{
+			Id:     int(p.ID),
+			Handle: p.Handle,
+		})
+	}
 	props := views.ChatScreenProps{
-		ActiveConversations: data,
-		ActiveChatId:        -1,
-		CurrentMessages:     []views.ChatMessageProps{},
+		PossibleConversations: possibleData,
+		ActiveConversations:   data,
+		ActiveChatId:          -1,
+		CurrentMessages:       []views.ChatMessageProps{},
 	}
 
 	component := views.ChatScreen(props)

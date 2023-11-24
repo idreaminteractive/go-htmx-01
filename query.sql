@@ -61,3 +61,14 @@ insert into messages (user_id, conversation_id, content) values (?, ?, ?) return
 
 -- name: GetOtherConversationUser :one
 select u.id, u.handle from user u, user_conversation uc where u.id = uc.user_id and uc.conversation_id=? and u.id != ? limit 1;
+
+
+-- name: PossibleConversationUsers :many 
+select u.id, u.handle from user u where u.id not in (
+select uc.user_id from user_conversation uc where uc.conversation_id in (
+  select  user_conversation.conversation_id 
+        from user_conversation 
+        where user_conversation.user_id = ?)
+and uc.user_id != ?)
+and u.id != ?
+
