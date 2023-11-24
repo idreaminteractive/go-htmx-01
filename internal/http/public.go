@@ -39,7 +39,7 @@ func (s *Server) handleRootGet(c echo.Context) error {
 			views.BaseData{
 				Body:  body,
 				CSRF:  csrf_value,
-				Title: "GoNotes",
+				Title: "Chat App",
 			},
 		),
 		c)
