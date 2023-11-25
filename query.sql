@@ -1,14 +1,12 @@
-
-
 -- name: CreateUser :one
 insert into user (
   password, email, handle
-) values (? , ?, ?) returning *;
+) values (?1 , ?2, ?3) returning *;
 
 
 -- name: GetUserByEmail :one
 select * from user 
-where email = ? limit 1; 
+where email = ?1 limit 1; 
 
 
 -- name: GetAllUsers :many
@@ -68,7 +66,11 @@ select u.id, u.handle from user u where u.id not in (
 select uc.user_id from user_conversation uc where uc.conversation_id in (
   select  user_conversation.conversation_id 
         from user_conversation 
-        where user_conversation.user_id = ?)
-and uc.user_id != ?)
-and u.id != ?
+        where user_conversation.user_id = ?1)
+and uc.user_id != ?1)
+and u.id != ?1;
 
+
+
+-- name: NewQueryName :many 
+select u.id from user u where u.id > ?1 and (?2 IS NULL or u.email = ?2);

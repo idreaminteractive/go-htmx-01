@@ -172,11 +172,7 @@ func (cs *ChatService) GetUsersWithNoConversation(userId int) ([]db.PossibleConv
 	ctx := context.Background()
 
 	// it's all the same args, i feel like there's a better way... lol
-	possibles, err := cs.queries.PossibleConversationUsers(ctx, db.PossibleConversationUsersParams{
-		UserID:   int64(userId),
-		ID:       int64(userId),
-		UserID_2: int64(userId),
-	})
+	possibles, err := cs.queries.PossibleConversationUsers(ctx, int64(userId))
 	if err != nil {
 		logrus.Error(err)
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}

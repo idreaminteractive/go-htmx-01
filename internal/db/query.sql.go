@@ -46,7 +46,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 const createUser = `-- name: CreateUser :one
 insert into user (
   password, email, handle
-) values (? , ?, ?) returning id, email, handle, password, created_at
+) values (?1 , ?2, ?3) returning id, email, handle, password, created_at
 `
 
 type CreateUserParams struct {
@@ -240,7 +240,7 @@ func (q *Queries) GetTotalNumMessages(ctx context.Context) (int64, error) {
 
 const getUserByEmail = `-- name: GetUserByEmail :one
 select id, email, handle, password, created_at from user 
-where email = ? limit 1
+where email = ?1 limit 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -272,29 +272,55 @@ func (q *Queries) LinkUserToConversation(ctx context.Context, arg LinkUserToConv
 	return i, err
 }
 
+const newQueryName = `-- name: NewQueryName :many
+select u.id from user u where u.id > ?1 and (?2 IS NULL or u.email = ?2)
+`
+
+type NewQueryNameParams struct {
+	ID      int64
+	Column2 interface{}
+}
+
+func (q *Queries) NewQueryName(ctx context.Context, arg NewQueryNameParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, newQueryName, arg.ID, arg.Column2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const possibleConversationUsers = `-- name: PossibleConversationUsers :many
 select u.id, u.handle from user u where u.id not in (
 select uc.user_id from user_conversation uc where uc.conversation_id in (
   select  user_conversation.conversation_id 
         from user_conversation 
-        where user_conversation.user_id = ?)
-and uc.user_id != ?)
-and u.id != ?
+        where user_conversation.user_id = ?1)
+and uc.user_id != ?1)
+and u.id != ?1
 `
-
-type PossibleConversationUsersParams struct {
-	UserID   int64
-	UserID_2 int64
-	ID       int64
-}
 
 type PossibleConversationUsersRow struct {
 	ID     int64
 	Handle string
 }
 
-func (q *Queries) PossibleConversationUsers(ctx context.Context, arg PossibleConversationUsersParams) ([]PossibleConversationUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, possibleConversationUsers, arg.UserID, arg.UserID_2, arg.ID)
+func (q *Queries) PossibleConversationUsers(ctx context.Context, userID int64) ([]PossibleConversationUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, possibleConversationUsers, userID)
 	if err != nil {
 		return nil, err
 	}
