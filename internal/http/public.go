@@ -23,28 +23,29 @@ func (s *Server) handleLogoutGet(c echo.Context) error {
 
 // will be the main page of the system
 // let's mirror our current live version that pulls in the stuff
-func (s *Server) handleRootGet(c echo.Context) error {
+func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 
 	// get our message count
 
-	csrf_value := getCSRFValueFromContext(c)
+	// csrf_value := getCSRFValueFromContext(c)
 	count, err := s.services.ChatService.GetTotalMessagCount()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	body := views.Root(count)
 
-	renderComponent(
-		views.Base(
-			views.BaseData{
-				Body:  body,
-				CSRF:  csrf_value,
-				Title: "Chat App",
-			},
-		),
-		c)
-
-	return nil
+	// renderComponent(
+	base := views.Base(
+		views.BaseData{
+			Body: body,
+			// CSRF:  csrf_value,
+			Title: "Chat App",
+		},
+	)
+	// 	c)
+	base.Render(r.Context(), w)
+	// return templ.Handler(Home()).ServeHTTP
 }
 
 func (s *Server) handleLoginPost(c echo.Context) error {

@@ -42,11 +42,8 @@ func NewProgram() *Program {
 		logrus.Panic("Bad port!")
 	}
 	return &Program{
-		// i feellike i don't even need this???
-		// wrapper for our sqlite db functionality
-		Port: port,
-		DB:   sqlite.NewDB(config.DatabaseFileName),
-		// wrapper for our http server w/ all the services
+		Port:   port,
+		DB:     sqlite.NewDB(config.DatabaseFileName),
 		Server: http.NewServer(config, queries),
 	}
 }
@@ -84,6 +81,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() { <-c; cancel() }()
 
+	// sets it all up
 	m := NewProgram()
 
 	// Execute program.

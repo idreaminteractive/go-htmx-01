@@ -94,31 +94,32 @@ func (s *Server) handleSSE(c echo.Context) error {
 
 // Only group when necessary like w/ middlewares, etc.
 func (s *Server) routes() {
-
+	fs := http.FileServer(http.Dir("static"))
+	s.router.Handle("/static/*", http.StripPrefix("/static/", fs))
 	// not sure how i feel about the handler names, but i mean, it's readable?
-	s.echo.Static("/static", "static")
-	s.echo.GET("/message-count", s.handleSSE)
+
+	// s.router.Get("/message-count", s.handleSSE)
 	// health check routes
 	// note, this is an example of using a closure for a route
 	// to provide extra info, or repeatable routes
-	s.echo.Any("/healthz", s.handleAnyHealthz())
+	s.router.Get("/healthz", s.handleAnyHealthz)
 
 	// Root routes
-	s.echo.GET("/", s.handleRootGet)
-	s.echo.GET("/login", s.handleLoginGet)
-	s.echo.POST("/login", s.handleLoginPost)
+	s.router.Get("/", s.handleRootGet)
+	// s.echo.GET("/login", s.handleLoginGet)
+	// s.echo.POST("/login", s.handleLoginPost)
 
-	s.echo.GET("/logout", s.handleLogoutGet)
+	// s.echo.GET("/logout", s.handleLogoutGet)
 
-	s.echo.GET("/register", s.handleRegisterGet)
-	s.echo.POST("/register", s.handleRegisterPost)
+	// s.echo.GET("/register", s.handleRegisterGet)
+	// s.echo.POST("/register", s.handleRegisterPost)
 
-	// Logged in routes
-	chatGroup := s.echo.Group("/chat")
-	chatGroup.Use(s.requireAuthMiddleware)
-	chatGroup.GET("", s.handleChatGet)
-	chatGroup.GET("/:id", s.handleChatByIdGet)
-	chatGroup.POST("/:id", s.handleChatByIdPost)
-	chatGroup.POST("/new", s.handleChatNewPost)
+	// // Logged in routes
+	// chatGroup := s.echo.Group("/chat")
+	// chatGroup.Use(s.requireAuthMiddleware)
+	// chatGroup.GET("", s.handleChatGet)
+	// chatGroup.GET("/:id", s.handleChatByIdGet)
+	// chatGroup.POST("/:id", s.handleChatByIdPost)
+	// chatGroup.POST("/new", s.handleChatNewPost)
 
 }

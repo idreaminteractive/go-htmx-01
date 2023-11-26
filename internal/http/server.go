@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 
 	"main/internal/config"
 	"main/internal/db"
@@ -12,77 +13,62 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/gorilla/sessions"
+	"github.com/gorilla/csrf"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const ShutdownTimeout = 1 * time.Second
 
 // i want to
 type Server struct {
-	echo     *echo.Echo
+	router   *chi.Mux
+	server   *http.Server
 	config   *config.EnvConfig
 	services *services.ServiceLocator
 }
 
-type EchoSetupStruct struct {
+type ServerSetupStruct struct {
 	SessionSecret string
 	// default bool is false, so we generally want to enable it
 	DisableCSRF bool
 }
 
-func setupEcho(config EchoSetupStruct) *echo.Echo {
+func setupServer(config ServerSetupStruct) *chi.Mux {
 	// sets up echo with standard things
 	// we attach it here in order to allow tests to use it as well.
-	e := echo.New()
-
-	e.Pre(middleware.RemoveTrailingSlash())
-	e.Use(middleware.Recover())
-	// e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(
-	//     rate.Limit(20),
-	// )))
-
+	r := chi.NewRouter()
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Timeout(60 * time.Second))
 	gob.Register(services.SessionPayload{})
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
+	// e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
+	r.Use(middleware.Compress(5))
 
-	e.Use(middleware.Gzip())
-
-	// set that we're looking for form
 	validation.ErrorTag = "form"
-	// errs := note.Validate()
-
-	// if errs != nil {
-	// 	terr := errs.(validation.Errors)
-	// 	fmt.Println(terr["content"])
-	// 	fmt.Println("------")
-	// 	fmt.Println(terr["potato"])
-	// 	fmt.Println("------")
-
-	// }
-
-	// wrap up
-
-	e.Use(middleware.Logger())
-	e.Use(middleware.RequestID())
-	e.Use(middleware.Recover())
 	if !config.DisableCSRF {
-		e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-			TokenLookup: "header:X-CSRFToken",
-		}))
+		csrfMiddleware :=
+			csrf.Protect([]byte("32-byte-long-auth-key"))
+		r.Use(csrfMiddleware)
+
+		// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		// 	TokenLookup: "header:X-CSRFToken",
+		// }))
 
 	}
 
-	return e
+	return r
 }
 
 func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
-	e := setupEcho(EchoSetupStruct{SessionSecret: config.SessionSecret})
+	r := setupServer(ServerSetupStruct{SessionSecret: config.SessionSecret})
 
 	// setup our service locator
 	sl := services.ServiceLocator{}
@@ -90,35 +76,31 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	sl.AuthenticationService = services.InitAuthService(&sl, queries)
 	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
 	sl.ChatService = services.InitChatService(&sl, queries)
-	// initialize the rest of our services
+	// initialize the rest of our services + http server
 	s := &Server{
-		echo:     e,
+		router:   r,
 		config:   config,
 		services: &sl,
+		server: &http.Server{
+			Addr:    fmt.Sprintf(":%s", config.GoPort),
+			Handler: r,
+		},
 	}
-
-	// left off here - reorg our routes into a routes.go file pls.
-
-	// for now, this is fine - we'll set some monster caching later on
-
 	s.routes()
 
 	return s
 }
 
 // example of the route closures
-func (s *Server) handleAnyHealthz() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		return c.String(http.StatusOK, "ok")
-	}
+func (s *Server) handleAnyHealthz(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 
 }
 
 func (s *Server) Open(port string) (err error) {
 
-	s.echo.Logger.Fatal(s.echo.Start(port))
-
-	return nil
+	return s.server.ListenAndServe()
 
 }
 
@@ -127,17 +109,17 @@ func (s *Server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
 
 	defer cancel()
-
-	return s.echo.Shutdown(ctx)
+	return s.server.Shutdown(ctx)
 
 }
 
 // safe csrf getting
 func getCSRFValueFromContext(c echo.Context) string {
-	context := c.Get(middleware.DefaultCSRFConfig.ContextKey)
-	if context == nil {
-		// we don't have anything here, use blank string
-		return ""
-	}
-	return context.(string)
+	// context := c.Get(middleware.ContextKey)
+	// if context == nil {
+	// 	// we don't have anything here, use blank string
+	// 	return ""
+	// }
+	// return context.(string)
+	return ""
 }
