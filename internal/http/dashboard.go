@@ -18,7 +18,7 @@ func (s *Server) handleDashboardGet(c echo.Context) error {
 
 	}
 
-	csrf_value := getCSRFValueFromContext(c)
+	csrf_value := csrfFromRequest(c.Request())
 	component := views.Dashboard()
 	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value})
 	renderComponent(base, c)

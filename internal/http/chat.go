@@ -188,7 +188,7 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 	}
 
 	component := views.ChatScreen(props)
-	base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Login"})
+	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(c.Request()), Title: "Login"})
 	renderComponent(base, c)
 	return nil
 }
@@ -258,7 +258,7 @@ func (s *Server) handleChatGet(c echo.Context) error {
 	}
 
 	component := views.ChatScreen(props)
-	base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Login"})
+	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(c.Request()), Title: "Login"})
 	renderComponent(base, c)
 	return nil
 }

@@ -27,7 +27,7 @@ func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 
 	// get our message count
 
-	// csrf_value := getCSRFValueFromContext(c)
+	csrf_value := csrfFromRequest(r)
 	count, err := s.services.ChatService.GetTotalMessagCount()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,14 +38,13 @@ func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 	// renderComponent(
 	base := views.Base(
 		views.BaseData{
-			Body: body,
-			// CSRF:  csrf_value,
+			Body:  body,
+			CSRF:  csrf_value,
 			Title: "Chat App",
 		},
 	)
-	// 	c)
 	base.Render(r.Context(), w)
-	// return templ.Handler(Home()).ServeHTTP
+
 }
 
 func (s *Server) handleLoginPost(c echo.Context) error {
@@ -96,7 +95,7 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 
 func (s *Server) handleLoginGet(c echo.Context) error {
 	// no errors or anything on initial bits.
-	csrf_value := getCSRFValueFromContext(c)
+	csrf_value := csrfFromRequest(c.Request())
 
 	component := views.LoginScreen(views.LoginScreenProps{})
 	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
@@ -120,7 +119,7 @@ func (s *Server) handleMessageCountGet(c echo.Context) error {
 func (s *Server) handleRegisterGet(c echo.Context) error {
 	// no errors or anything on initial bits.
 	component := views.RegisterForm(views.RegisterFormData{})
-	base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Register"})
+	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(c.Request()), Title: "Register"})
 	renderComponent(base, c)
 	return nil
 }

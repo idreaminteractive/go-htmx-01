@@ -13,7 +13,6 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/labstack/echo/v4"
 
 	"github.com/gorilla/csrf"
 
@@ -114,12 +113,12 @@ func (s *Server) Close() error {
 }
 
 // safe csrf getting
-func getCSRFValueFromContext(c echo.Context) string {
-	// context := c.Get(middleware.ContextKey)
-	// if context == nil {
-	// 	// we don't have anything here, use blank string
-	// 	return ""
-	// }
-	// return context.(string)
+func csrfFromRequest(r *http.Request) string {
+	context := r.Context().Value("csrf")
+	fmt.Printf("%+v", context)
+	if context != nil {
+		return context.(string)
+	}
 	return ""
+
 }
