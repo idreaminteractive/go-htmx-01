@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo-contrib/session"
@@ -34,7 +35,7 @@ func InitSessionService(sl *ServiceLocator, sessionName string, maxAge int) *Ses
 	}
 }
 
-func (ss *SessionService) ReadSession(c echo.Context) (SessionPayload, error) {
+func (ss *SessionService) ReadSession(r *http.Request) (SessionPayload, error) {
 	// this feels janky - but it's fine for now.
 	sess, err := session.Get(ss.sessionName, c)
 	if err != nil {
@@ -49,7 +50,16 @@ func (ss *SessionService) ReadSession(c echo.Context) (SessionPayload, error) {
 
 }
 
-func (ss *SessionService) WriteSession(c echo.Context, sp SessionPayload) error {
+func Get(name string, c echo.Context) (*sessions.Session, error) {
+	s := c.Get(key)
+	if s == nil {
+		return nil, fmt.Errorf("%q session store not found", key)
+	}
+	store := s.(sessions.Store)
+	return store.Get(c.Request(), name)
+}
+
+func (ss *SessionService) WriteSession(w http.ResponseWriter, r *http.Request, sp SessionPayload) error {
 	sess, err := session.Get(ss.sessionName, c)
 	if err != nil {
 		logrus.Info("Could not get session")
@@ -63,7 +73,7 @@ func (ss *SessionService) WriteSession(c echo.Context, sp SessionPayload) error 
 	}
 	// Set user as authenticated
 	sess.Values["data"] = sp
-	if err = sess.Save(c.Request(), c.Response()); err != nil {
+	if err = sess.Save(r, w); err != nil {
 		logrus.WithField("error", err).Error("Error in saving session")
 		return err
 	}

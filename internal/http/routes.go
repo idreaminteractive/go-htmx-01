@@ -104,10 +104,12 @@ func (s *Server) routes() {
 	// to provide extra info, or repeatable routes
 	s.router.Get("/healthz", s.handleAnyHealthz)
 
+	s.router.NotFound(s.notFound)
+
 	// Root routes
 	s.router.Get("/", s.handleRootGet)
-	// s.echo.GET("/login", s.handleLoginGet)
-	// s.echo.POST("/login", s.handleLoginPost)
+	s.router.Get("/login", s.handleLoginGet)
+	s.router.Post("/login", s.handleLoginPost)
 
 	// s.echo.GET("/logout", s.handleLogoutGet)
 

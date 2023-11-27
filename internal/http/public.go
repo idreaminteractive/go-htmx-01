@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/sirupsen/logrus"
 
@@ -47,11 +49,17 @@ func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s *Server) handleLoginPost(c echo.Context) error {
+func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	var user dto.UserLoginDTO
-	if err := c.Bind(&user); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := render.Bind(r, &user); err != nil {
+		views.InternalServerError(err).Render(r.Context(), w)
+		return
+
 	}
 	var formErrors validation.Errors
 	if err := user.Validate(); err != nil {
@@ -61,10 +69,11 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 			Errors:         formErrors,
 		})
 		// JUst the tip
-		c.Response().Header().Set("HX-Retarget", "#loginScreen")
-		c.Response().Header().Set("HX-Reswap", "outerHTML")
-		renderComponent(component, c)
-		return nil
+		htmx.NewResponse().
+			Retarget("#loginScreen").
+			Reswap(htmx.SwapOuterHTML).
+			RenderTempl(r.Context(), w, component)
+		return
 	}
 
 	// create our user + id
@@ -77,10 +86,11 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 				"email": validation.NewError("", "Invalid email or password"),
 			},
 		})
-		c.Response().Header().Set("HX-Retarget", "#loginScreen")
-		c.Response().Header().Set("HX-Reswap", "outerHTML")
-		renderComponent(component, c)
-		return nil
+		htmx.NewResponse().
+			Retarget("#loginScreen").
+			Reswap(htmx.SwapOuterHTML).
+			RenderTempl(r.Context(), w, component)
+		return
 	}
 
 	// successful login, lesgo.
@@ -88,19 +98,20 @@ func (s *Server) handleLoginPost(c echo.Context) error {
 	// create our session + stuff
 	s.services.SessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
 
-	c.Response().Header().Set("HX-Redirect", "/chat")
+	htmx.NewResponse().
+		Redirect("/chat")
 
-	return nil
+	return
 }
 
-func (s *Server) handleLoginGet(c echo.Context) error {
+func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
 	// no errors or anything on initial bits.
-	csrf_value := csrfFromRequest(c.Request())
+	csrf_value := csrfFromRequest(r)
 
 	component := views.LoginScreen(views.LoginScreenProps{})
 	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
-	renderComponent(base, c)
-	return nil
+	base.Render(r.Context(), w)
+
 }
 
 func (s *Server) handleMessageCountGet(c echo.Context) error {
