@@ -111,10 +111,10 @@ func (s *Server) routes() {
 	s.router.Get("/login", s.handleLoginGet)
 	s.router.Post("/login", s.handleLoginPost)
 
-	// s.echo.GET("/logout", s.handleLogoutGet)
+	s.router.Get("/logout", s.handleLogoutGet)
 
-	// s.echo.GET("/register", s.handleRegisterGet)
-	// s.echo.POST("/register", s.handleRegisterPost)
+	s.router.Get("/register", s.handleRegisterGet)
+	s.router.Post("/register", s.handleRegisterPost)
 
 	// // Logged in routes
 	// chatGroup := s.echo.Group("/chat")

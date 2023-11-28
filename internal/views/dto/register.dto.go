@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"net/http"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
@@ -10,6 +12,11 @@ type RegisterDTO struct {
 	Email           string `form:"email"`
 	Password        string `form:"password"`
 	ConfirmPassword string `form:"confirm_password"`
+}
+
+func (reg *RegisterDTO) Bind(r *http.Request) error {
+
+	return nil
 }
 
 func (a RegisterDTO) Validate() error {

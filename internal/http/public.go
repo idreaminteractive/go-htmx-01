@@ -129,21 +129,23 @@ func (s *Server) handleMessageCountGet(c echo.Context) error {
 	return nil
 }
 
-func (s *Server) handleRegisterGet(c echo.Context) error {
+func (s *Server) handleRegisterGet(w http.ResponseWriter, r *http.Request) {
 	// no errors or anything on initial bits.
 	component := views.RegisterForm(views.RegisterFormData{})
-	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(c.Request()), Title: "Register"})
-	renderComponent(base, c)
-	return nil
+	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Register"})
+	htmx.NewResponse().RenderTempl(r.Context(), w, base)
+
 }
 
-func (s *Server) handleRegisterPost(c echo.Context) error {
+func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	var reg dto.RegisterDTO
 
 	var formErrors validation.Errors
 
-	if err := c.Bind(&reg); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := render.Bind(r, &reg); err != nil {
+		views.InternalServerError(err).Render(r.Context(), w)
+		return
+
 	}
 
 	if err := reg.Validate(); err != nil {
@@ -159,28 +161,36 @@ func (s *Server) handleRegisterPost(c echo.Context) error {
 		}
 	}
 
-	// let's hash our password + then check and see if the user already exists (we hash first to prevent timing attacks)
-	// user, err := s.services.AuthenticationService.Register(reg)
-	// if err != nil {
-	// 	logrus.Errorf("%s", err)
-	// 	// actually check if it exists or not
-	// 	formErrors = map[string]error{
-	// 		"email": validation.NewError("", "That user already exists "),
-	// 	}
-	// }
-
 	if formErrors.Filter() != nil {
 		component := views.RegisterForm(views.RegisterFormData{Previous: reg, Errors: formErrors})
-		c.Response().Header().Set("HX-Retarget", "#registerForm")
-		c.Response().Header().Set("HX-Reswap", "outerHTML")
-		renderComponent(component, c)
-		return nil
+		htmx.NewResponse().
+			Retarget("#registerForm").
+			Reswap(htmx.SwapOuterHTML).
+			RenderTempl(r.Context(), w, component)
+		return
 
+	}
+	// if there are form errors, don;t do the following!
+	// let's hash our password + then check and see if the user already exists (we hash first to prevent timing attacks)
+	user, err := s.services.AuthenticationService.Register(reg)
+	if err != nil {
+		logrus.Errorf("%s", err)
+		// actually check if it exists or not
+		formErrors = map[string]error{
+			"email": validation.NewError("", "That user already exists "),
+		}
+		component := views.RegisterForm(views.RegisterFormData{Previous: reg, Errors: formErrors})
+		htmx.NewResponse().
+			Retarget("#registerForm").
+			Reswap(htmx.SwapOuterHTML).
+			RenderTempl(r.Context(), w, component)
+		return
 	}
 	// ok - return success!
 	logrus.Info("Successful registration!")
-	// s.services.SessionService.WriteSession(c, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
+	s.services.SessionService.WriteSession(w, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
 
-	c.Response().Header().Set("HX-Redirect", "/chat")
-	return nil
+	// c.Response().Header().Set("HX-Redirect", "/chat")
+	htmx.NewResponse().Redirect("/chat").Write(w)
+	return
 }
