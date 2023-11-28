@@ -7,83 +7,99 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/angelofallars/htmx-go"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
-func (s *Server) handleChatNewPost(c echo.Context) error {
+type newChat struct {
+	UserId string `form:"userId"`
+}
+
+func (nc newChat) Bind(r *http.Request) error {
+
+	return nil
+}
+func (s *Server) handleChatNewPost(w http.ResponseWriter, r *http.Request) {
 
 	// make a new chat + redirect to it
 
 	// creates a new message in the thread
-	var newChat struct {
-		UserId string `form:"userId"`
-	}
-	if err := c.Bind(&newChat); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	var nc newChat
+
+	if err := render.Bind(r, &nc); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	otherUserId, err := strconv.Atoi(newChat.UserId)
+	otherUserId, err := strconv.Atoi(nc.UserId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-
-	spew.Dump(newChat)
 
 	//  no errors, message was goot.
-	userId := c.Request().Context().Value("userId").(int)
+	userId := s.getUserIdFromCTX(r)
 	conv, err := s.services.ChatService.CreateNewConversation(userId, otherUserId)
-	spew.Dump(conv)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
 
-	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/chat/%d", conv.ID))
-	return nil
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	htmx.NewResponse().Redirect(fmt.Sprintf("/chat/%d", conv.ID)).Write(w)
+
 }
 
-func (s *Server) handleChatByIdPost(c echo.Context) error {
+func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 
-	chatIdString := c.Param("id")
+	chatIdString := chi.URLParam(r, "id")
 	chatId, err := strconv.Atoi(chatIdString)
+
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 	// creates a new message in the thread
 	var message dto.ChatMessageDTO
-	if err := c.Bind(&message); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := render.Bind(r, &message); err != nil {
+		// general render bind error
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
 	// var formErrors validation.Errors
 	if err := message.Validate(); err != nil {
 		formErrors := err.(validation.Errors)
 		// hx return here
 		component := views.ChatMessageForm(views.ChatMessageFormProps{ActiveChatId: chatId, PreviousMessage: message.Message, Errors: formErrors})
 		// render w/ hx
-		c.Response().Header().Set("HX-Retarget", "#messageForm")
-		c.Response().Header().Set("HX-Reswap", "outerHTML")
+		htmx.NewResponse().Retarget("#messageForm").Reswap(htmx.SwapOuterHTML).RenderTempl(r.Context(), w, component)
 
-		renderComponent(component, c)
-
-		return nil
+		return
 	}
 	//  no errors, message was goot.
-	userId := c.Request().Context().Value("userId").(int)
+	userId := s.getUserIdFromCTX(r)
 
 	// add dat message
 	_, err = s.services.ChatService.AddMessageToConversation(userId, chatId, message.Message)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		fmt.Println("We are in error oof. why no return?")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
 	var currentMessages []views.ChatMessageProps
 	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
-
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 
 	}
+
 	for _, conv := range messages {
 		if conv.Id == chatId {
 			for _, message := range conv.Messages {
@@ -107,32 +123,34 @@ func (s *Server) handleChatByIdPost(c echo.Context) error {
 	// just render chat activity + only use base data
 	component := views.ChatActivity(cap)
 	// taerget it
-	c.Response().Header().Set("HX-Retarget", "#chatActivity")
-	c.Response().Header().Set("HX-Reswap", "outerHTML")
-
-	renderComponent(component, c)
-	return nil
+	spew.Dump(cap)
+	htmx.NewResponse().
+		Retarget("#chatActivity").
+		Reswap(htmx.SwapOuterHTML).
+		RenderTempl(r.Context(), w, component)
 
 }
 
-func (s *Server) handleChatByIdGet(c echo.Context) error {
+func (s *Server) handleChatByIdGet(w http.ResponseWriter, r *http.Request) {
 	// load our data
 	// this could be a lot leaner
 
-	chatIdString := c.Param("id")
+	chatIdString := chi.URLParam(r, "id")
 	chatId, err := strconv.Atoi(chatIdString)
+
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	userId := c.Request().Context().Value("userId").(int)
+	userId := s.getUserIdFromCTX(r)
 
 	// no matter what, i need my messages for this chat
 	var currentMessages []views.ChatMessageProps
 	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
-
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 
 	}
 	for _, conv := range messages {
@@ -150,26 +168,28 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 		}
 	}
 
-	isHX := c.Request().Header.Get("Hx-Request")
 	cap := views.ChatActivityProps{
 		ActiveChatId:    chatId,
 		CurrentMessages: currentMessages,
 	}
-	if isHX == "true" {
+	if htmx.IsHTMX(r) {
+
 		// just render chat activity + only use base data
 		component := views.ChatActivity(cap)
-		renderComponent(component, c)
-		return nil
+		htmx.NewResponse().RenderTempl(r.Context(), w, component)
+		return
 	}
-	data, err := s.getConversationData(c)
+	data, err := s.getConversationData(userId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	// what about users we DON'T have a chat with? let's make it a post thing
 
 	possibles, err := s.services.ChatService.GetUsersWithNoConversation(userId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var possibleData []views.PossibleConversationItemProps
@@ -188,37 +208,32 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 	}
 
 	component := views.ChatScreen(props)
-	base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Login"})
-	renderComponent(base, c)
-	return nil
+	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Chatting"})
+	htmx.NewResponse().RenderTempl(r.Context(), w, base)
+
 }
 
-func (s *Server) getConversationData(c echo.Context) ([]views.ConversationItemProps, error) {
-	sess, err := s.services.SessionService.ReadSession(c)
-	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Could not read session")
+func (s *Server) getConversationData(userId int) ([]views.ConversationItemProps, error) {
 
-	}
 	// ok - this is the root page, so nothing active.
 
-	data, err := s.services.ChatService.GetConversationsForUser(sess.UserId)
+	data, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
 
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 
 	}
-
 	ActiveConversations := []views.ConversationItemProps{}
 	for _, conversation := range data {
 		// this is bad!
-		otherUser, err := s.services.ChatService.GetOtherUserInConversation(sess.UserId, conversation.Id)
+		otherUser, err := s.services.ChatService.GetOtherUserInConversation(userId, conversation.Id)
 		if err != nil {
 			logrus.Error(err)
 			continue
 		}
 		firstMessage := conversation.Messages[0]
 		mText := "No message"
-		if firstMessage.UserId == sess.UserId {
+		if firstMessage.UserId == userId {
 			mText = "> " + firstMessage.Content
 		} else {
 			mText = "< " + firstMessage.Content
@@ -230,17 +245,20 @@ func (s *Server) getConversationData(c echo.Context) ([]views.ConversationItemPr
 	return ActiveConversations, nil
 }
 
-func (s *Server) handleChatGet(c echo.Context) error {
+func (s *Server) handleChatGet(w http.ResponseWriter, r *http.Request) {
 	// this will list our chat maessage
+
 	// get our convos +
-	data, err := s.getConversationData(c)
+	userId := s.getUserIdFromCTX(r)
+	data, err := s.getConversationData(userId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	userId := c.Request().Context().Value("userId").(int)
 	possibles, err := s.services.ChatService.GetUsersWithNoConversation(userId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var possibleData []views.PossibleConversationItemProps
@@ -258,7 +276,7 @@ func (s *Server) handleChatGet(c echo.Context) error {
 	}
 
 	component := views.ChatScreen(props)
-	base := views.Base(views.BaseData{Body: component, CSRF: getCSRFValueFromContext(c), Title: "Login"})
-	renderComponent(base, c)
-	return nil
+	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Login"})
+	htmx.NewResponse().RenderTempl(r.Context(), w, base)
+
 }

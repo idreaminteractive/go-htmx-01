@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full:2023-10-16-15-49-40
+FROM gitpod/workspace-full:latest
 
 RUN sudo apt-get update && sudo apt-get install -y fuse3 sqlite3 docker-buildx-plugin
 

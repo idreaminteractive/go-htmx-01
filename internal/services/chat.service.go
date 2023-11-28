@@ -1,15 +1,11 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"io"
 
 	"main/internal/db"
-	"main/internal/views"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
 )
 
@@ -126,8 +122,7 @@ func (cs *ChatService) GetOtherUserInConversation(userId, conversationId int) (*
 
 func (cs *ChatService) AddMessageToConversation(userId, conversationId int, content string) (*db.Message, error) {
 	ctx := context.Background()
-	spew.Dump(userId)
-	spew.Dump(conversationId)
+
 	msg, err := cs.queries.CreateMessage(ctx, db.CreateMessageParams{UserID: int64(userId), ConversationID: int64(conversationId), Content: content})
 	if err != nil {
 		logrus.Error(err)
@@ -135,22 +130,22 @@ func (cs *ChatService) AddMessageToConversation(userId, conversationId int, cont
 	}
 
 	// send message count to sse
-	count, err := cs.queries.GetTotalNumMessages(ctx)
-	if err != nil {
-		logrus.Error(err)
-		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
-	}
+	// count, err := cs.queries.GetTotalNumMessages(ctx)
+	// if err != nil {
+	// 	logrus.Error(err)
+	// 	return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	// }
 
 	// there is likely a simpler way to get this into a diff writer.
-	buf := bytes.NewBuffer([]byte{})
-	views.MessageCount(int(count)).Render(context.Background(), buf)
+	// buf := bytes.NewBuffer([]byte{})
+	// views.MessageCount(int(count)).Render(context.Background(), buf)
 
-	s, err := io.ReadAll(buf)
-	if err != nil {
-		logrus.Error(err)
-		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
-	}
-	cs.MessageChannel <- s
+	// s, err := io.ReadAll(buf)
+	// if err != nil {
+	// 	logrus.Error(err)
+	// 	return nil, &Error{Code: EINTERNAL, Message: err.Error()}
+	// }
+	// cs.MessageChannel <- s
 
 	// we made dat message
 	return &msg, nil
