@@ -24,7 +24,7 @@ templ Base(data BaseData) {
 				htmx.logAll();
 			</script>
 		</head>
-		<body hx-headers={ fmt.Sprintf("{\"X-CSRFToken\": \"%s\"}", data.CSRF) } hx-boost="true">
+		<body hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", data.CSRF) } hx-boost="true">
 			{! data.Body }
 		</body>
 	</html>

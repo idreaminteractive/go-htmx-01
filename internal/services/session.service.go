@@ -1,20 +1,21 @@
 package services
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/gob"
+	"encoding/hex"
+	"errors"
+	"log"
+	"main/internal/cookies"
 	"net/http"
-
-	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
 type ISessionService interface {
-	WriteSession(c echo.Context, sp SessionPayload) error
-	ReadSession(c echo.Context) (SessionPayload, error)
+	WriteSession(w http.ResponseWriter, sp SessionPayload) error
+	ReadSession(r *http.Request) (*SessionPayload, error)
 }
 
 type SessionPayload struct {
@@ -26,49 +27,40 @@ type SessionService struct {
 	sessionName string
 	maxAge      int
 	sl          *ServiceLocator
+	secret      []byte
 }
 
 func InitSessionService(sl *ServiceLocator, sessionName string, maxAge int) *SessionService {
+	var err error
+
+	secret, err := hex.DecodeString("13b4dff8f84a10851021ec8a5d12b570d562c92fe6b5ec4c4129f595bcb3234b")
+	if err != nil {
+		log.Fatal(err)
+	}
 	return &SessionService{
 		sessionName: sessionName,
 		maxAge:      maxAge,
 		sl:          sl,
+		secret:      secret,
 	}
 }
 
-func (ss *SessionService) ReadSession(r *http.Request) (SessionPayload, error) {
+func (ss *SessionService) ReadSession(r *http.Request) (*SessionPayload, error) {
 	// this feels janky - but it's fine for now.
-	sess, err := session.Get(ss.sessionName, c)
+
+	sess, err := ss.getCookie(r)
 	if err != nil {
 		logrus.Error("Error in getting session")
-		return SessionPayload{}, err
+		return &SessionPayload{}, err
 	}
-	payload := sess.Values["data"]
-	if payload == nil {
-		return SessionPayload{}, nil
-	}
-	return payload.(SessionPayload), nil
+
+	return sess, nil
 
 }
 
-
-
-func (ss *SessionService) WriteSession(w http.ResponseWriter, r *http.Request, sp SessionPayload) error {
-	sess, err := session.Get(ss.sessionName, c)
-	if err != nil {
-		logrus.Info("Could not get session")
-		return err
-	}
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   ss.maxAge,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-	// Set user as authenticated
-	sess.Values["data"] = sp
-	if err = sess.Save(r, w); err != nil {
-		logrus.WithField("error", err).Error("Error in saving session")
+func (ss *SessionService) WriteSession(w http.ResponseWriter, sp SessionPayload) error {
+	if err := ss.setCookie(w, sp); err != nil {
+		logrus.WithError(err).Error("Could not write session")
 		return err
 	}
 
@@ -76,60 +68,58 @@ func (ss *SessionService) WriteSession(w http.ResponseWriter, r *http.Request, s
 
 }
 
+func (ss *SessionService) setCookie(w http.ResponseWriter, sp SessionPayload) error {
 
+	var buf bytes.Buffer
 
-
-
-type (
-	// Config defines the config for Session middleware.
-	Config struct {	
-		// Session store.
-		// Required.
-		Store sessions.Store
+	err := gob.NewEncoder(&buf).Encode(sp)
+	if err != nil {
+		logrus.Error(err)
+		return err
 	}
-)
 
-const (
-	key = "_session_store"
-)
-
-var (
-	// DefaultConfig is the default Session middleware config.
-	DefaultConfig = Config{
-		
+	cookie := http.Cookie{
+		Name:     ss.sessionName,
+		Value:    buf.String(),
+		Path:     "/",
+		MaxAge:   ss.maxAge,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 	}
-)
 
-// Get returns a named session.
-func Get(name string, r *http.Request) (*sessions.Session, error) {
-	s := r.Context().Value(key)
-	if s == nil {
-		return nil, fmt.Errorf("%q session store not found", key)
+	err = cookies.WriteEncrypted(w, cookie, ss.secret)
+	if err != nil {
+		return err
 	}
-	store := s.(sessions.Store)
-	return store.Get(r, name)
+	return nil
 }
 
-// Middleware returns a Session middleware.
-func Middleware(store sessions.Store) func(next http.Handler) http.Handler {
-	c := DefaultConfig
-	c.Store = store
-	return MiddlewareWithConfig(c)
-}
+func (ss *SessionService) getCookie(r *http.Request) (*SessionPayload, error) {
+	gobEncodedValue, err := cookies.ReadEncrypted(r, ss.sessionName, ss.secret)
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			logrus.Error("Cookie not found")
 
-// MiddlewareWithConfig returns a Sessions middleware with config.
-// See `Middleware()`.
-func MiddlewareWithConfig(config Config)  func(next http.Handler) http.Handler {
-	// Defaults	
-	if config.Store == nil {
-		panic("echo: session middleware requires store")
+		case errors.Is(err, cookies.ErrInvalidValue):
+			logrus.Error("Invalid cookie")
+
+		default:
+
+			logrus.Error("server error")
+
+		}
+		return nil, err
 	}
 
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer context.Clear(r)
-			ctx := context. .WithValue(r.Context(), key, config.Store)
-    		next.ServeHTTP(w, r.WithContext(ctx))
-		})
+	var sp SessionPayload
+
+	reader := strings.NewReader(gobEncodedValue)
+
+	if err := gob.NewDecoder(reader).Decode(&sp); err != nil {
+		logrus.Error(err)
+		return nil, err
 	}
+	return &sp, nil
 }

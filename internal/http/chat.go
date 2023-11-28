@@ -194,31 +194,28 @@ func (s *Server) handleChatByIdGet(c echo.Context) error {
 }
 
 func (s *Server) getConversationData(c echo.Context) ([]views.ConversationItemProps, error) {
-	sess, err := s.services.SessionService.ReadSession(c)
-	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Could not read session")
 
-	}
+	userId := c.Request().Context().Value("userId").(int)
+
 	// ok - this is the root page, so nothing active.
 
-	data, err := s.services.ChatService.GetConversationsForUser(sess.UserId)
+	data, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
 
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 
 	}
-
 	ActiveConversations := []views.ConversationItemProps{}
 	for _, conversation := range data {
 		// this is bad!
-		otherUser, err := s.services.ChatService.GetOtherUserInConversation(sess.UserId, conversation.Id)
+		otherUser, err := s.services.ChatService.GetOtherUserInConversation(userId, conversation.Id)
 		if err != nil {
 			logrus.Error(err)
 			continue
 		}
 		firstMessage := conversation.Messages[0]
 		mText := "No message"
-		if firstMessage.UserId == sess.UserId {
+		if firstMessage.UserId == userId {
 			mText = "> " + firstMessage.Content
 		} else {
 			mText = "< " + firstMessage.Content

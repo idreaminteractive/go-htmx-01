@@ -114,11 +114,12 @@ func (s *Server) Close() error {
 
 // safe csrf getting
 func csrfFromRequest(r *http.Request) string {
-	context := r.Context().Value("csrf")
-	fmt.Printf("%+v", context)
-	if context != nil {
-		return context.(string)
-	}
-	return ""
+	return csrf.Token(r)
+	// context := r.Context().Value("csrf")
+	// fmt.Printf("%+v", context)
+	// if context != nil {
+	// 	return context.(string)
+	// }
+	// return ""
 
 }

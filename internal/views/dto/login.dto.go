@@ -14,6 +14,7 @@ type UserLoginDTO struct {
 
 // do we combine validate + bind in one?
 func (u *UserLoginDTO) Bind(r *http.Request) error {
+
 	return nil
 }
 func (a UserLoginDTO) Validate() error {

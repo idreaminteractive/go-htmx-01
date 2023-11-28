@@ -16,11 +16,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (s *Server) handleLogoutGet(c echo.Context) error {
+func (s *Server) handleLogoutGet(w http.ResponseWriter, r *http.Request) {
 	// kill session + redirect (i should not need to post anywhere)
 	// write a blank session
-	s.services.SessionService.WriteSession(c, services.SessionPayload{})
-	return c.Redirect(http.StatusMovedPermanently, "/")
+	s.services.SessionService.WriteSession(w, services.SessionPayload{})
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	return
 }
 
 // will be the main page of the system
@@ -96,11 +97,12 @@ func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 	// successful login, lesgo.
 
 	// create our session + stuff
-	s.services.SessionService.WriteSession(c, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
+	fmt.Println("Writing session")
+	s.services.SessionService.WriteSession(w, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
+	fmt.Printf("Done writing session, redirecterroo")
 
 	htmx.NewResponse().
-		Redirect("/chat")
-
+		Redirect("/chat").Write(w)
 	return
 }
 
@@ -158,14 +160,14 @@ func (s *Server) handleRegisterPost(c echo.Context) error {
 	}
 
 	// let's hash our password + then check and see if the user already exists (we hash first to prevent timing attacks)
-	user, err := s.services.AuthenticationService.Register(reg)
-	if err != nil {
-		logrus.Errorf("%s", err)
-		// actually check if it exists or not
-		formErrors = map[string]error{
-			"email": validation.NewError("", "That user already exists "),
-		}
-	}
+	// user, err := s.services.AuthenticationService.Register(reg)
+	// if err != nil {
+	// 	logrus.Errorf("%s", err)
+	// 	// actually check if it exists or not
+	// 	formErrors = map[string]error{
+	// 		"email": validation.NewError("", "That user already exists "),
+	// 	}
+	// }
 
 	if formErrors.Filter() != nil {
 		component := views.RegisterForm(views.RegisterFormData{Previous: reg, Errors: formErrors})
@@ -177,7 +179,7 @@ func (s *Server) handleRegisterPost(c echo.Context) error {
 	}
 	// ok - return success!
 	logrus.Info("Successful registration!")
-	s.services.SessionService.WriteSession(c, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
+	// s.services.SessionService.WriteSession(c, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
 
 	c.Response().Header().Set("HX-Redirect", "/chat")
 	return nil
