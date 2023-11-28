@@ -21,7 +21,7 @@ templ Base(data BaseData) {
 			<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
 			<script type="text/javascript" src="/static/js/hyperscript.min.js"></script>
 			<script type="text/javascript">
-				htmx.logAll();
+				// htmx.logAll();
 			</script>
 		</head>
 		<body hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", data.CSRF) } hx-boost="true">

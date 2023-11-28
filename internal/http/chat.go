@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -124,12 +123,16 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	// just render chat activity + only use base data
 	component := views.ChatActivity(cap)
 	// taerget it
-	spew.Dump(cap)
+
+	// for this, it's not a real flash message,
+	// but an oob swap into the page to simulate it.
 
 	htmx.NewResponse().
 		Retarget("#chatActivity").
 		Reswap(htmx.SwapOuterHTML).
-		RenderTempl(r.Context(), w, components.FlashWrapper(component))
+		RenderTempl(r.Context(), w, components.FlashWrapper(component, components.FlashProps{
+			Message: "Hi there!",
+		}))
 
 }
 
@@ -175,7 +178,6 @@ func (s *Server) handleChatByIdGet(w http.ResponseWriter, r *http.Request) {
 		CurrentMessages: currentMessages,
 	}
 	if htmx.IsHTMX(r) {
-
 		// just render chat activity + only use base data
 		component := views.ChatActivity(cap)
 		htmx.NewResponse().RenderTempl(r.Context(), w, component)

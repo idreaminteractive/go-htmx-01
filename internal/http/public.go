@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"main/internal/services"
 	"main/internal/views"
-	"main/internal/views/components"
 	"main/internal/views/dto"
 	"net/http"
 
@@ -67,10 +66,6 @@ func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 			LastSubmission: user,
 			Errors:         formErrors,
 		})
-		// JUst the tip
-
-		// render our flash
-		components.FlashMessage().Render(r.Context(), w)
 
 		htmx.NewResponse().
 			Retarget("#loginScreen").
