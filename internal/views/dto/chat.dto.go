@@ -10,7 +10,8 @@ type ChatMessageDTO struct {
 	Message string `form:"message"`
 }
 
-func (cm *ChatMessageDTO) Bind(r *http.Request) error {
+func (a *ChatMessageDTO) Bind(r *http.Request) error {
+	// prevalidate things or update based on data
 	return nil
 }
 

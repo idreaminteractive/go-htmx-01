@@ -31,7 +31,7 @@ func (s *Server) handleChatNewPost(w http.ResponseWriter, r *http.Request) {
 	// creates a new message in the thread
 	var nc newChat
 
-	if err := nc.Bind(r); err != nil {
+	if err := render.Bind(r, &nc); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -66,6 +66,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	// creates a new message in the thread
 	var message dto.ChatMessageDTO
 	if err := render.Bind(r, &message); err != nil {
+		// general render bind error
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
