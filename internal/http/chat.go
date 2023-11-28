@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"main/internal/views"
+	"main/internal/views/components"
 	"main/internal/views/dto"
 	"net/http"
 	"strconv"
@@ -124,10 +125,11 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	component := views.ChatActivity(cap)
 	// taerget it
 	spew.Dump(cap)
+
 	htmx.NewResponse().
 		Retarget("#chatActivity").
 		Reswap(htmx.SwapOuterHTML).
-		RenderTempl(r.Context(), w, component)
+		RenderTempl(r.Context(), w, components.FlashWrapper(component))
 
 }
 
