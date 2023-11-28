@@ -16,9 +16,9 @@ import (
 func (s *Server) handleLogoutGet(w http.ResponseWriter, r *http.Request) {
 	// kill session + redirect (i should not need to post anywhere)
 	// write a blank session
-	s.services.SessionService.WriteSession(w, services.SessionPayload{})
+	s.services.SessionService.WriteSession(w, r, services.SessionPayload{})
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
-	return
+
 }
 
 // will be the main page of the system
@@ -95,12 +95,12 @@ func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	// create our session + stuff
 	fmt.Println("Writing session")
-	s.services.SessionService.WriteSession(w, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
+	s.services.SessionService.WriteSession(w, r, services.SessionPayload{UserId: int(results.ID), Email: user.Email})
 	fmt.Printf("Done writing session, redirecterroo")
 
 	htmx.NewResponse().
 		Redirect("/chat").Write(w)
-	return
+
 }
 
 func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
@@ -185,8 +185,8 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	}
 	// ok - return success!
 	logrus.Info("Successful registration!")
-	s.services.SessionService.WriteSession(w, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
+	s.services.SessionService.WriteSession(w, r, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
 
 	htmx.NewResponse().Redirect("/chat").Write(w)
-	return
+
 }

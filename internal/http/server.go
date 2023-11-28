@@ -8,6 +8,7 @@ import (
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/services"
+	"main/internal/session"
 
 	"net/http"
 	"time"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/sessions"
 )
 
 const ShutdownTimeout = 1 * time.Second
@@ -45,9 +47,10 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Timeout(60 * time.Second))
-	gob.Register(services.SessionPayload{})
-	// e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 	r.Use(middleware.Compress(5))
+	gob.Register(services.SessionPayload{})
+
+	r.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 
 	validation.ErrorTag = "form"
 	if !config.DisableCSRF {
@@ -115,11 +118,5 @@ func (s *Server) Close() error {
 // safe csrf getting
 func csrfFromRequest(r *http.Request) string {
 	return csrf.Token(r)
-	// context := r.Context().Value("csrf")
-	// fmt.Printf("%+v", context)
-	// if context != nil {
-	// 	return context.(string)
-	// }
-	// return ""
 
 }

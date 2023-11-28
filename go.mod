@@ -29,6 +29,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/gorilla/context v1.1.2
+	github.com/gorilla/sessions v1.2.2
 	github.com/labstack/gommon v0.4.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

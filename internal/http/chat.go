@@ -51,7 +51,7 @@ func (s *Server) handleChatNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	htmx.NewResponse().Redirect(fmt.Sprintf("/chat/%d", conv.ID)).Write(w)
-	return
+
 }
 
 func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +91,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("2")
+
 	var currentMessages []views.ChatMessageProps
 	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	fmt.Println("3")
+
 	for _, conv := range messages {
 		if conv.Id == chatId {
 			for _, message := range conv.Messages {
@@ -114,7 +114,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
-	fmt.Println("4")
+
 	cap := views.ChatActivityProps{
 		ActiveChatId:    chatId,
 		CurrentMessages: currentMessages,
@@ -278,5 +278,5 @@ func (s *Server) handleChatGet(w http.ResponseWriter, r *http.Request) {
 	component := views.ChatScreen(props)
 	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Login"})
 	htmx.NewResponse().RenderTempl(r.Context(), w, base)
-	return
+
 }
