@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -115,6 +116,15 @@ func (s *Server) routes() {
 
 	s.router.Get("/register", s.handleRegisterGet)
 	s.router.Post("/register", s.handleRegisterPost)
+
+	s.router.Route("/chat", func(r chi.Router) {
+		r.Use(s.requireAuthMiddleware)
+		r.Get("/", s.handleChatGet)
+		r.Get("/{id}", s.handleChatByIdGet)
+		r.Post("/{id}", s.handleChatByIdPost)
+		r.Post("/new", s.handleChatNewPost)
+
+	})
 
 	// // Logged in routes
 	// chatGroup := s.echo.Group("/chat")

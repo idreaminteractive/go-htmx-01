@@ -7,13 +7,10 @@ import (
 	"main/internal/views/dto"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/sirupsen/logrus"
-
-	"github.com/labstack/echo/v4"
 )
 
 func (s *Server) handleLogoutGet(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +48,7 @@ func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
-
+	htmx.NewResponse().RenderTempl(r.Context(), w, views.NotFoundComponent())
 }
 
 func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
@@ -116,18 +113,18 @@ func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s *Server) handleMessageCountGet(c echo.Context) error {
+// func (s *Server) handleMessageCountGet(c echo.Context) error {
 
-	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-	c.Response().Header().Set("Cache-Control", "no-cache")
-	c.Response().Header().Set("Connection", "keep-alive")
-	c.Response().Header().Set("Content-Type", "text/event-stream")
-	component := views.MessageCount(13)
-	c.Response().Writer.WriteHeader(200)
-	templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
-	// renderComponent(component, c)
-	return nil
-}
+// 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+// 	c.Response().Header().Set("Cache-Control", "no-cache")
+// 	c.Response().Header().Set("Connection", "keep-alive")
+// 	c.Response().Header().Set("Content-Type", "text/event-stream")
+// 	component := views.MessageCount(13)
+// 	c.Response().Writer.WriteHeader(200)
+// 	templ.Handler(component).ServeHTTP(c.Response().Writer, c.Request())
+// 	// renderComponent(component, c)
+// 	return nil
+// }
 
 func (s *Server) handleRegisterGet(w http.ResponseWriter, r *http.Request) {
 	// no errors or anything on initial bits.
@@ -190,7 +187,6 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	logrus.Info("Successful registration!")
 	s.services.SessionService.WriteSession(w, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
 
-	// c.Response().Header().Set("HX-Redirect", "/chat")
 	htmx.NewResponse().Redirect("/chat").Write(w)
 	return
 }
