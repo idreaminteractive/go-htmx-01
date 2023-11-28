@@ -25,6 +25,7 @@ templ Base(data BaseData) {
 			</script>
 		</head>
 		<body hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", data.CSRF) } hx-boost="true">
+			<div id="flashmessage"></div>
 			{! data.Body }
 		</body>
 	</html>
