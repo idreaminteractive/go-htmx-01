@@ -7,6 +7,7 @@ import (
 
 	"main/internal/config"
 	"main/internal/db"
+	"main/internal/hotreload"
 	"main/internal/services"
 	"main/internal/session"
 
@@ -63,6 +64,9 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 		// }))
 
 	}
+	hotreload.HotReload(r)
+
+	//  add hot reload w/ thing
 
 	return r
 }

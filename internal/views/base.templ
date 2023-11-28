@@ -29,6 +29,7 @@ templ Base(data BaseData) {
 			<main>
 				{! data.Body }
 			</main>
+			<div class="hidden" hx-ext="sse" sse-connect="/hmr/value" sse-swap="message"></div>
 		</body>
 	</html>
 }
