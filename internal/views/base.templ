@@ -22,6 +22,7 @@ templ Base(data BaseData) {
 			<script type="text/javascript" src="/static/js/hyperscript.min.js"></script>
 			<script type="text/javascript">
 				// htmx.logAll();
+		
 			</script>
 		</head>
 		<body hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", data.CSRF) } hx-boost="true">
@@ -29,7 +30,25 @@ templ Base(data BaseData) {
 			<main>
 				{! data.Body }
 			</main>
-			<div class="hidden" hx-ext="sse" sse-connect="/hmr/value" sse-swap="message"></div>
+			// include the following for that sweet hmr
+			<div
+ 				class="hidden"
+ 				_="
+				set :start to ''			
+				on htmx:sseMessage 
+					// log :start
+					// log event.detail.data
+					if :start == '' 
+						set :start to event.detail.data
+					end 
+					if :start != event.detail.data
+						reload() the location of the window
+					end 						
+				"
+ 				hx-ext="sse"
+ 				sse-connect="/hmr"
+ 				sse-swap="message"
+			></div>
 		</body>
 	</html>
 }

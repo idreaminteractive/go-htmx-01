@@ -59,12 +59,9 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 			csrf.Protect([]byte("32-byte-long-auth-key"))
 		r.Use(csrfMiddleware)
 
-		// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		// 	TokenLookup: "header:X-CSRFToken",
-		// }))
-
 	}
-	hotreload.HotReload(r)
+	handler := hotreload.New()
+	r.Get("/hmr", handler.ServeHTTP)
 
 	//  add hot reload w/ thing
 
