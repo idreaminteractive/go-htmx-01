@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/go-faker/faker/v4 v4.2.0
 	github.com/gorilla/csrf v1.7.2
+	github.com/gorilla/websocket v1.5.1
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/sirupsen/logrus v1.9.3

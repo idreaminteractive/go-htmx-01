@@ -11,6 +11,7 @@ import (
 	"main/internal/services"
 	"main/internal/session"
 	"main/internal/sse"
+	"main/internal/ws"
 
 	"net/http"
 	"time"
@@ -80,6 +81,16 @@ func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 
 	// create our general production events sse handler
 	sseHandler := sse.New()
+
+	// create our ws stuff
+	hub := ws.NewHub()
+	go hub.Run()
+	r.Get("/chatws", func(w http.ResponseWriter, r *http.Request) {
+		ws.ServeWs(hub, w, r)
+	})
+	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	// 	serveWs(hub, w, r)
+	// })
 
 	// setup our service locator
 	sl := services.ServiceLocator{
