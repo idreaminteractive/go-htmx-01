@@ -1,5 +1,5 @@
 # Build our application using a Go builder.
-FROM golang:1.20 AS builder
+FROM golang:1.21.4 AS builder
 
 WORKDIR /src/project
 COPY . .
@@ -38,12 +38,16 @@ COPY etc/litefs.yml /etc/litefs.yml
 
 COPY --from=builder /src/project/static static
 # install alpine deps
-RUN apk add bash fuse3 sqlite ca-certificates curl
+RUN apk add bash fuse3 sqlite ca-certificates curl gnupg
 
 RUN mkdir -p /litefs/data
 
 ENV GO_PORT="8081"
 ENV PORT="8080"
+ARG DOPPLER_TOKEN=''
+ENV DOPPLER_TOKEN=''
+RUN (curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh || wget -t 3 -qO- https://cli.doppler.com/install.sh) | sh
+
 
 EXPOSE 8080
 ENTRYPOINT litefs mount
