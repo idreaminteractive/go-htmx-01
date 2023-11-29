@@ -10,6 +10,7 @@ import (
 	"main/internal/hotreload"
 	"main/internal/services"
 	"main/internal/session"
+	"main/internal/sse"
 
 	"net/http"
 	"time"
@@ -37,6 +38,8 @@ type ServerSetupStruct struct {
 	SessionSecret string
 	// default bool is false, so we generally want to enable it
 	DisableCSRF bool
+
+	Env string
 }
 
 func setupServer(config ServerSetupStruct) *chi.Mux {
@@ -52,7 +55,7 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 	gob.Register(services.SessionPayload{})
 
 	r.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
-
+	r.Use(AddEnvMiddleware(config.Env))
 	validation.ErrorTag = "form"
 	if !config.DisableCSRF {
 		csrfMiddleware :=
@@ -60,10 +63,11 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 		r.Use(csrfMiddleware)
 
 	}
-	handler := hotreload.New()
-	r.Get("/hmr", handler.ServeHTTP)
 
-	//  add hot reload w/ thing
+	if config.Env == "dev_local" {
+		handler := hotreload.New()
+		r.Get("/hmr", handler.ServeHTTP)
+	}
 
 	return r
 }
@@ -71,13 +75,19 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
-	r := setupServer(ServerSetupStruct{SessionSecret: config.SessionSecret})
+	r := setupServer(ServerSetupStruct{SessionSecret: config.SessionSecret, Env: config.DopplerConfig})
+
+	// create our general production events sse handler
+	sseHandler := sse.New()
 
 	// setup our service locator
-	sl := services.ServiceLocator{}
+	sl := services.ServiceLocator{
+		SSEEventBus: sseHandler,
+	}
 
 	sl.AuthenticationService = services.InitAuthService(&sl, queries)
 	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
+
 	sl.ChatService = services.InitChatService(&sl, queries)
 	// initialize the rest of our services + http server
 	s := &Server{

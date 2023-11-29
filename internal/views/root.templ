@@ -5,7 +5,7 @@ import "fmt"
 templ Root (numMessages int64) {
 	<div class="flex items-center justify-center h-screen bg-gradient-to-r from-black via-gray-800 to-black">
 		<div class="w-full max-w-xl bg-black/60 p-8 rounded-lg">
-			<h1 class="text-4xl font-bold text-white mb-6 text-center">Welcome to Super Awesome Chat!</h1>
+			<h1 class="text-4xl font-bold text-white mb-6 text-center">Welcome to Awesome Chat!</h1>
 			<p class="text-lg text-gray-300 mb-6 text-center">
 				Connect and engage with friends, share your thoughts, and join the community. Start chatting now and see your
 				conversations come alive!
@@ -27,7 +27,12 @@ templ Root (numMessages int64) {
 				</svg>
 				<div>
 					<p class="text-gray-300 text-sm">Total Messages Sent</p>
-					<p class="text-2xl text-white font-bold">{ fmt.Sprintf("%d", numMessages) }</p>
+					<p
+ 						class="text-2xl text-white font-bold"
+ 						hx-ext="sse"
+ 						sse-connect="/events"
+ 						sse-swap="message-count"
+					>{ fmt.Sprintf("%d", numMessages) }</p>
 				</div>
 			</div>
 			<a role="button" class="btn inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 px-4 w-full py-2 rounded bg-blue-500 text-white" href="/login">

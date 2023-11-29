@@ -40,3 +40,13 @@ func (s *Server) getUserIdFromCTX(r *http.Request) int {
 	}
 	return userId.(int)
 }
+
+func AddEnvMiddleware(cfg string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cr := helpers.ContextSave(r, "env", cfg)
+			next.ServeHTTP(w, cr)
+		})
+	}
+
+}

@@ -1,4 +1,4 @@
-package hotreload
+package sse
 
 import (
 	_ "embed"
@@ -11,17 +11,16 @@ import (
 
 func New() *Handler {
 	return &Handler{
-		startTime: time.Now(),
-		m:         new(sync.Mutex),
-		requests:  map[int64]chan event{},
+
+		m:        new(sync.Mutex),
+		requests: map[int64]chan event{},
 	}
 }
 
 type Handler struct {
-	startTime time.Time
-	m         *sync.Mutex
-	counter   int64
-	requests  map[int64]chan event
+	m        *sync.Mutex
+	counter  int64
+	requests map[int64]chan event
 }
 
 type event struct {
@@ -66,11 +65,16 @@ loop:
 	for {
 		select {
 		case <-timer.C:
-			if _, err := fmt.Fprintf(w, "event: message\ndata: %v\n\n", s.startTime); err != nil {
+			if _, err := fmt.Fprintf(w, "event: message\ndata: ping\n\n"); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			timer.Reset(time.Second * 5)
+		case e := <-events:
+			if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", e.Type, e.Data); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		case <-r.Context().Done():
 			break loop
 		}

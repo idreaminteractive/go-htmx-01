@@ -92,6 +92,14 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// do sse for it
+	count, err := s.services.ChatService.GetTotalMessagCount()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	s.services.SSEEventBus.Send("message-count", fmt.Sprintf("%d", count))
+
 	var currentMessages []views.ChatMessageProps
 	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
@@ -122,7 +130,6 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	// re-render w/ new datas
 	// just render chat activity + only use base data
 	component := views.ChatActivity(cap)
-	// taerget it
 
 	// for this, it's not a real flash message,
 	// but an oob swap into the page to simulate it.

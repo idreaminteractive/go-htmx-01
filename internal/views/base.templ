@@ -8,6 +8,13 @@ type BaseData struct {
 	Title string
 }
 
+func GetCtxEnv(ctx context.Context) string {
+	if env, ok := ctx.Value("env").(string); ok {
+		return env
+	}
+	return ""
+}
+
 templ Base(data BaseData) {
 	<!DOCTYPE html>
 	<html data-theme="corporate">
@@ -30,10 +37,11 @@ templ Base(data BaseData) {
 			<main>
 				{! data.Body }
 			</main>
-			// include the following for that sweet hmr
-			<div
- 				class="hidden"
- 				_="
+			// include the following for that sweet hmr if we are on dev local
+			if GetCtxEnv(ctx) == "dev_local" {
+				<div
+ 					class="hidden"
+ 					_="
 				set :start to ''			
 				on htmx:sseMessage 
 					// log :start
@@ -45,10 +53,11 @@ templ Base(data BaseData) {
 						reload() the location of the window
 					end 						
 				"
- 				hx-ext="sse"
- 				sse-connect="/hmr"
- 				sse-swap="message"
-			></div>
+ 					hx-ext="sse"
+ 					sse-connect="/hmr"
+ 					sse-swap="message"
+				></div>
+			}
 		</body>
 	</html>
 }
