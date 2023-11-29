@@ -28,15 +28,10 @@ type SessionService struct {
 func InitSessionService(sl *ServiceLocator, sessionName string, maxAge int) *SessionService {
 	// var err error
 
-	// secret, err := hex.DecodeString("13b4dff8f84a10851021ec8a5d12b570d562c92fe6b5ec4c4129f595bcb3234b")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 	return &SessionService{
 		sessionName: sessionName,
 		maxAge:      maxAge,
 		sl:          sl,
-		// secret:      secret,
 	}
 }
 

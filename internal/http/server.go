@@ -54,7 +54,7 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(middleware.Compress(5))
 	gob.Register(services.SessionPayload{})
-
+	fmt.Printf("Using %s", config.SessionSecret)
 	r.Use(session.Middleware(sessions.NewCookieStore([]byte(config.SessionSecret))))
 	r.Use(AddEnvMiddleware(config.Env))
 	validation.ErrorTag = "form"

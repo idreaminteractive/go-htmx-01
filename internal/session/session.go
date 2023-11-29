@@ -64,14 +64,4 @@ func MiddlewareWithConfig(config Config) func(next http.Handler) http.Handler {
 		})
 	}
 
-	// return func(next echo.HandlerFunc) echo.HandlerFunc {
-	// 	return func(c echo.Context) error {
-	// 		if config.Skipper(c) {
-	// 			return next(c)
-	// 		}
-	// 		defer context.Clear(c.Request())
-	// 		c.Set(key, config.Store)
-	// 		return next(c)
-	// 	}
-	// }
 }
