@@ -9,9 +9,9 @@ RUN go install github.com/a-h/templ/cmd/templ@latest
 
 # install tw?
 RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.3.3/tailwindcss-linux-x64
-RUN  chmod +x tailwindcss-linux-x64
+RUN chmod +x tailwindcss-linux-x64
 RUN mv tailwindcss-linux-x64 tailwindcss
-
+RUN yarn install
 RUN ./tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
 
 # do our build stuff here.
