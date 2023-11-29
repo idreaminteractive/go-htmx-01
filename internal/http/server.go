@@ -16,6 +16,7 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/csrf"
 
@@ -112,7 +113,7 @@ func (s *Server) handleAnyHealthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Open(port string) (err error) {
-
+	logrus.Info("Starter started!")
 	return s.server.ListenAndServe()
 
 }

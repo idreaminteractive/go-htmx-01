@@ -67,7 +67,7 @@ func (ss *SessionService) ReadSession(r *http.Request) (SessionPayload, error) {
 func (ss *SessionService) WriteSession(w http.ResponseWriter, r *http.Request, sp SessionPayload) error {
 	sess, err := session.Get(ss.sessionName, r)
 	if err != nil {
-		logrus.Info("Could not get session")
+		logrus.Error(err)
 		return err
 	}
 	sess.Options = &sessions.Options{

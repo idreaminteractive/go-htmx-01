@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+type SSEMessage string
+
+// Messages here
+const MESSAGECOUNT SSEMessage = "message-count"
+
 func New() *Handler {
 	return &Handler{
 
@@ -24,12 +29,12 @@ type Handler struct {
 }
 
 type event struct {
-	Type string
+	Type SSEMessage
 	Data string
 }
 
 // Send an event to all connected clients.
-func (s *Handler) Send(eventType string, data string) {
+func (s *Handler) Send(eventType SSEMessage, data string) {
 	s.m.Lock()
 	defer s.m.Unlock()
 	for _, f := range s.requests {

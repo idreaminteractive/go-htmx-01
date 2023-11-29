@@ -27,7 +27,7 @@ func NewProgram() *Program {
 	if config.DopplerConfig != "dev_local" {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
-	logrus.Info("Logging Ready to Go")
+	fmt.Printf("%+v", config)
 
 	database := sqlite.NewDB(config.DatabaseFileName)
 	if err := database.Open(); err != nil {
@@ -64,7 +64,7 @@ func (m *Program) Close() error {
 }
 
 func (m *Program) Run(ctx context.Context) error {
-
+	// passing port does nothing here.
 	if err := m.Server.Open(fmt.Sprintf(":%d", m.Port)); err != nil {
 		return err
 	}
