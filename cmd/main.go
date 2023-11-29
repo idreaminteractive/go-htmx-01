@@ -27,7 +27,6 @@ func NewProgram() *Program {
 	if config.DopplerConfig != "dev_local" {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
-	fmt.Printf("%+v", config)
 
 	database := sqlite.NewDB(config.DatabaseFileName)
 	if err := database.Open(); err != nil {
