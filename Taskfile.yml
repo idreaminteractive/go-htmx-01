@@ -57,7 +57,7 @@ tasks:
 
   docker-build:
     cmds:
-      - DOCKER_BUILDKIT=1 docker build -t latest .
+      - DOCKER_BUILDKIT=1 docker build --progress=plain -t latest .
 
   docker-run:
     cmds:

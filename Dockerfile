@@ -3,16 +3,30 @@ FROM golang:1.21.4 AS builder
 
 WORKDIR /src/project
 COPY . .
-# need to install + build templ BEFORE compiling ze go.
-RUN go install github.com/a-h/templ/cmd/templ@latest
 
 
 # install tw?
 RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.3.3/tailwindcss-linux-x64
 RUN chmod +x tailwindcss-linux-x64
 RUN mv tailwindcss-linux-x64 tailwindcss
-RUN yarn install
+ENV NODE_VERSION=20.10.0
+RUN apt install -y curl
+# install n0dE
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+RUN npm install
 RUN ./tailwindcss -i ./styles/input.css -o ./static/css/styles.css --minify
+
+
+# # need to install + build templ BEFORE compiling ze go.
+RUN go install github.com/a-h/templ/cmd/templ@latest
+
+
+
 
 # do our build stuff here.
 RUN templ generate
