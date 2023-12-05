@@ -3,17 +3,17 @@ package tests
 import (
 	"database/sql"
 	"fmt"
-	"io"
+
 	"log"
 	"os"
 	"os/exec"
 
 	"github.com/go-faker/faker/v4/pkg/slice"
-	"github.com/sirupsen/logrus"
 )
 
 func GeneralSuiteSetup() {
-	logrus.SetOutput(io.Discard)
+	// turn off logging???
+
 }
 
 func TearDownSuite(dbPath string) {

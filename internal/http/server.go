@@ -11,18 +11,17 @@ import (
 	"main/internal/services"
 	"main/internal/session"
 	"main/internal/sse"
-	"main/internal/ws"
 
 	"net/http"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/csrf"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v2"
 	"github.com/gorilla/sessions"
 )
 
@@ -34,14 +33,15 @@ type Server struct {
 	server   *http.Server
 	config   *config.EnvConfig
 	services *services.ServiceLocator
+	logger   *httplog.Logger
 }
 
 type ServerSetupStruct struct {
 	SessionSecret string
 	// default bool is false, so we generally want to enable it
 	DisableCSRF bool
-
-	Env string
+	Logger      *httplog.Logger
+	Env         string
 }
 
 func setupServer(config ServerSetupStruct) *chi.Mux {
@@ -49,7 +49,9 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 	// we attach it here in order to allow tests to use it as well.
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
+	// add our logger to chi + to server struct
+	r.Use(httplog.RequestLogger(config.Logger))
+
 	r.Use(middleware.RealIP)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Timeout(60 * time.Second))
@@ -74,37 +76,28 @@ func setupServer(config ServerSetupStruct) *chi.Mux {
 	return r
 }
 
-func NewServer(config *config.EnvConfig, queries *db.Queries) *Server {
+func NewServer(config *config.EnvConfig, queries *db.Queries, logger *httplog.Logger) *Server {
 	// This is where we initialize all our services and attach to our
 	// server
-	r := setupServer(ServerSetupStruct{SessionSecret: config.SessionSecret, Env: config.DopplerConfig})
+	r := setupServer(ServerSetupStruct{Logger: logger, SessionSecret: config.SessionSecret, Env: config.DopplerConfig})
 
 	// create our general production events sse handler
 	sseHandler := sse.New()
-
-	// create our ws stuff
-	hub := ws.NewHub()
-	go hub.Run()
-	r.Get("/chatws", func(w http.ResponseWriter, r *http.Request) {
-		ws.ServeWs(hub, w, r)
-	})
-	// http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-	// 	serveWs(hub, w, r)
-	// })
 
 	// setup our service locator
 	sl := services.ServiceLocator{
 		SSEEventBus: sseHandler,
 	}
 
-	sl.AuthenticationService = services.InitAuthService(&sl, queries)
-	sl.SessionService = services.InitSessionService(&sl, "_session", 3600)
+	sl.AuthenticationService = services.InitAuthService(&sl, queries, logger)
+	sl.SessionService = services.InitSessionService(&sl, "_session", 3600, logger)
 
-	sl.ChatService = services.InitChatService(&sl, queries)
+	sl.ChatService = services.InitChatService(&sl, queries, logger)
 	// initialize the rest of our services + http server
 	s := &Server{
 		router:   r,
 		config:   config,
+		logger:   logger,
 		services: &sl,
 		server: &http.Server{
 			Addr:    fmt.Sprintf(":%s", config.GoPort),
@@ -124,7 +117,7 @@ func (s *Server) handleAnyHealthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Open(port string) (err error) {
-	logrus.Info("Starter started!")
+	s.logger.Info("Starter started!")
 	return s.server.ListenAndServe()
 
 }

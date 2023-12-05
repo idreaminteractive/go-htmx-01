@@ -13,7 +13,6 @@ import (
 	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
 )
 
 type newChat struct {
@@ -239,7 +238,7 @@ func (s *Server) getConversationData(userId int) ([]views.ConversationItemProps,
 		// this is bad!
 		otherUser, err := s.services.ChatService.GetOtherUserInConversation(userId, conversation.Id)
 		if err != nil {
-			logrus.Error(err)
+			s.logger.Error("Error getting other user", err)
 			continue
 		}
 		firstMessage := conversation.Messages[0]

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"main/internal/config"
 	"main/internal/db"
 	"main/internal/http"
@@ -10,9 +11,10 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"time"
 
+	"github.com/go-chi/httplog/v2"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/sirupsen/logrus"
 )
 
 // See the wtf project for reference
@@ -24,26 +26,45 @@ type Program struct {
 
 func NewProgram() *Program {
 	config := config.Parse()
-	if config.DopplerConfig != "dev_local" {
-		logrus.SetFormatter(&logrus.JSONFormatter{})
-	}
+
+	// the logger will be available
+	// via both the controller on the context
+	// as well as in the server struct
+	logger := httplog.NewLogger("go-htmx-01", httplog.Options{
+		// JSON:             true,
+		LogLevel:         slog.LevelDebug,
+		Concise:          true,
+		RequestHeaders:   true,
+		MessageFieldName: "message",
+		// TimeFieldFormat: time.RFC850,
+		Tags: map[string]string{
+			"version": "v1.0-81aa4244d9fc8076a",
+			"env":     config.DopplerConfig,
+		},
+		QuietDownRoutes: []string{
+			"/healthz",
+		},
+		QuietDownPeriod: 10 * time.Second,
+		// SourceFieldName: "source",
+	})
 
 	database := sqlite.NewDB(config.DatabaseFileName)
 	if err := database.Open(); err != nil {
-		logrus.WithError(err).Error("Of")
-		logrus.Panic("Could not open db")
+		logger.Error("Could not open db", err)
+
+		panic("Could not open db")
 	}
 
 	queries := db.New(database.Connection)
 
 	port, err := strconv.Atoi(config.GoPort)
 	if err != nil {
-		logrus.Panic("Bad port!")
+		panic("Bad port!")
 	}
 	return &Program{
 		Port:   port,
 		DB:     sqlite.NewDB(config.DatabaseFileName),
-		Server: http.NewServer(config, queries),
+		Server: http.NewServer(config, queries, logger),
 	}
 }
 

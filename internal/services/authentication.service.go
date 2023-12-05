@@ -8,18 +8,20 @@ import (
 
 	"main/internal/views/dto"
 
-	"github.com/sirupsen/logrus"
+	"github.com/go-chi/httplog/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthenticationService struct {
 	sl      *ServiceLocator
 	queries *db.Queries
+	logger  *httplog.Logger
 }
 
-func InitAuthService(sl *ServiceLocator, queries *db.Queries) *AuthenticationService {
+func InitAuthService(sl *ServiceLocator, queries *db.Queries, logger *httplog.Logger) *AuthenticationService {
 	return &AuthenticationService{
 		sl:      sl,
+		logger:  logger,
 		queries: queries,
 	}
 }
@@ -36,11 +38,11 @@ func checkPasswordHash(clearText, hash string) bool {
 
 func (as *AuthenticationService) Register(payload dto.RegisterDTO) (*db.User, error) {
 	ctx := context.Background()
-	logrus.WithField("user", payload.Email).Info("Registration attempt")
+	as.logger.Info("Registration attempt", "user", payload.Email)
 	// first, hash our pw
 	hashed, err := hashPassword(payload.Password)
 	if err != nil {
-		logrus.WithError(err).Error("Error in hashing password")
+		as.logger.Error("Error in hashing password", err)
 		return nil, &Error{Code: EINTERNAL, Message: "Could not hash password"}
 	}
 
@@ -48,18 +50,18 @@ func (as *AuthenticationService) Register(payload dto.RegisterDTO) (*db.User, er
 
 	_, err = as.queries.GetUserByEmail(ctx, payload.Email)
 	if err == nil {
-		logrus.Error("User already exists!")
+		as.logger.Error("User already exists!")
 		// user exists already
 		return nil, &Error{Code: ECONFLICT, Message: "User already exists"}
 	}
 	// user does not exist, create it and return it
-	logrus.Errorf("No user found for %s, making new acct", payload.Email)
+	as.logger.Info("No user found, making new acct", "email", payload.Email)
 
 	// make the user
 	fmt.Printf("Regging with %q", hashed)
 	createdUser, err := as.queries.CreateUser(ctx, db.CreateUserParams{Email: payload.Email, Handle: payload.Handle, Password: hashed})
 	if err != nil {
-		logrus.WithError(err).Error("Error in creating user")
+		as.logger.Error("Error in creating user", err)
 		// need to return proper errors
 		return nil, &Error{Code: EINTERNAL, Message: "Could not create user"}
 	}
@@ -70,17 +72,17 @@ func (as *AuthenticationService) Register(payload dto.RegisterDTO) (*db.User, er
 
 func (as *AuthenticationService) Authenticate(payload dto.UserLoginDTO) (*db.User, error) {
 	ctx := context.Background()
-	logrus.WithField("user", payload.Email).Info("Auth attempt")
+	as.logger.Info("Auth attempt", "user", payload.Email)
 	// first, hash our pw
 	hashed, err := hashPassword(payload.Password)
 	if err != nil {
-		logrus.WithError(err).Error("Error in hashing password")
+		as.logger.Error("Error in hashing password", err)
 		return nil, &Error{Code: EINTERNAL, Message: "Could not hash password"}
 	}
 
 	results, err := as.queries.GetUserByEmail(ctx, payload.Email)
 	if err != nil {
-		logrus.Errorf("No user found for %s, making new acct", payload.Email)
+		as.logger.Error("No user found, making new acct", "user", payload.Email)
 
 		return nil, &Error{Code: EUNAUTHORIZED, Message: "Invalid email or password"}
 	}
@@ -90,7 +92,7 @@ func (as *AuthenticationService) Authenticate(payload dto.UserLoginDTO) (*db.Use
 	} else {
 		// this needs to return a new auth error
 		fmt.Printf("%q -  %q - %q", payload.Password, hashed, results.Password)
-		logrus.Error("Failed pass check")
+		as.logger.Error("Failed pass check")
 		return nil, &Error{Code: EUNAUTHORIZED, Message: "Invalid email or password"}
 	}
 

@@ -1,6 +1,8 @@
 package services
 
-import "main/internal/sse"
+import (
+	"main/internal/sse"
+)
 
 type ServiceLocator struct {
 	// each service will be here, but it will also

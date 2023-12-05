@@ -6,19 +6,21 @@ import (
 
 	"main/internal/db"
 
-	"github.com/sirupsen/logrus"
+	"github.com/go-chi/httplog/v2"
 )
 
 type ChatService struct {
 	sl             *ServiceLocator
 	queries        *db.Queries
 	MessageChannel chan []byte
+	logger         *httplog.Logger
 }
 
-func InitChatService(sl *ServiceLocator, queries *db.Queries) *ChatService {
+func InitChatService(sl *ServiceLocator, queries *db.Queries, logger *httplog.Logger) *ChatService {
 	return &ChatService{
 		sl:             sl,
 		queries:        queries,
+		logger:         logger,
 		MessageChannel: make(chan []byte),
 	}
 }
@@ -42,7 +44,7 @@ func (cs *ChatService) GetConversationsForUser(userId int) ([]Conversation, erro
 	ctx := context.Background()
 	conversations, err := cs.queries.GetConversationsList(ctx, int64(userId))
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error gettting conversations", err)
 		// user exists already
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
@@ -54,7 +56,7 @@ func (cs *ChatService) GetConversationsForUser(userId int) ([]Conversation, erro
 		var cm []ConversationMessages
 		err := json.Unmarshal([]byte(c.ConversationMessages.(string)), &cm)
 		if err != nil {
-			logrus.Error(err)
+			cs.logger.Error("Err unmarshaling", err)
 			continue
 		}
 
@@ -81,20 +83,20 @@ func (cs *ChatService) CreateNewConversation(userIdOne, userIdTwo int) (*db.Conv
 	// how do i get a txn here?
 	conv, err := cs.queries.CreateConversation(ctx)
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error creating conversation", err)
 		// user exists already
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 
 	_, err = cs.queries.LinkUserToConversation(ctx, db.LinkUserToConversationParams{UserID: int64(userIdOne), ConversationID: conv.ID})
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error linking", err)
 
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 	_, err = cs.queries.LinkUserToConversation(ctx, db.LinkUserToConversationParams{UserID: int64(userIdTwo), ConversationID: conv.ID})
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error linking", err)
 
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
@@ -102,7 +104,7 @@ func (cs *ChatService) CreateNewConversation(userIdOne, userIdTwo int) (*db.Conv
 	// also add in a message for good measure!
 	_, err = cs.queries.CreateMessage(ctx, db.CreateMessageParams{UserID: int64(userIdOne), ConversationID: conv.ID, Content: "Hello there!"})
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error creating message", err)
 
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
@@ -114,7 +116,7 @@ func (cs *ChatService) GetOtherUserInConversation(userId, conversationId int) (*
 	ctx := context.Background()
 	data, err := cs.queries.GetOtherConversationUser(ctx, db.GetOtherConversationUserParams{ConversationID: int64(conversationId), ID: int64(userId)})
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error getting other user", err)
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 	return &otherUserReturn{Handle: data.Handle, Id: int(data.ID)}, nil
@@ -125,29 +127,10 @@ func (cs *ChatService) AddMessageToConversation(userId, conversationId int, cont
 
 	msg, err := cs.queries.CreateMessage(ctx, db.CreateMessageParams{UserID: int64(userId), ConversationID: int64(conversationId), Content: content})
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error creating message", err)
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 
-	// send message count to sse
-	// count, err := cs.queries.GetTotalNumMessages(ctx)
-	// if err != nil {
-	// 	logrus.Error(err)
-	// 	return nil, &Error{Code: EINTERNAL, Message: err.Error()}
-	// }
-
-	// there is likely a simpler way to get this into a diff writer.
-	// buf := bytes.NewBuffer([]byte{})
-	// views.MessageCount(int(count)).Render(context.Background(), buf)
-
-	// s, err := io.ReadAll(buf)
-	// if err != nil {
-	// 	logrus.Error(err)
-	// 	return nil, &Error{Code: EINTERNAL, Message: err.Error()}
-	// }
-	// cs.MessageChannel <- s
-
-	// we made dat message
 	return &msg, nil
 }
 
@@ -156,7 +139,7 @@ func (cs *ChatService) GetTotalMessagCount() (int64, error) {
 
 	count, err := cs.queries.GetTotalNumMessages(ctx)
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error getting number of messages", err)
 		return 0, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 	// we made dat message
@@ -169,7 +152,7 @@ func (cs *ChatService) GetUsersWithNoConversation(userId int) ([]db.PossibleConv
 	// it's all the same args, i feel like there's a better way... lol
 	possibles, err := cs.queries.PossibleConversationUsers(ctx, int64(userId))
 	if err != nil {
-		logrus.Error(err)
+		cs.logger.Error("Error getting possible user conversions", err)
 		return nil, &Error{Code: EINTERNAL, Message: err.Error()}
 	}
 

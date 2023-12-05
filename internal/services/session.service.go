@@ -4,8 +4,8 @@ import (
 	"main/internal/session"
 	"net/http"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/gorilla/sessions"
-	"github.com/sirupsen/logrus"
 )
 
 type ISessionService interface {
@@ -23,30 +23,26 @@ type SessionService struct {
 	maxAge      int
 	sl          *ServiceLocator
 	secret      []byte
+	logger      *httplog.Logger
 }
 
-func InitSessionService(sl *ServiceLocator, sessionName string, maxAge int) *SessionService {
+func InitSessionService(sl *ServiceLocator, sessionName string, maxAge int, logger *httplog.Logger) *SessionService {
 	// var err error
 
 	return &SessionService{
 		sessionName: sessionName,
 		maxAge:      maxAge,
 		sl:          sl,
+		logger:      logger,
 	}
 }
 
 func (ss *SessionService) ReadSession(r *http.Request) (SessionPayload, error) {
 	// this feels janky - but it's fine for now.
 
-	// sess, err := ss.getCookie(r)
-	// if err != nil {
-	// 	logrus.Error("Error in getting session")
-	// 	return &SessionPayload{}, err
-	// }
-
 	sess, err := session.Get(ss.sessionName, r)
 	if err != nil {
-		logrus.Error("Error in getting session")
+		ss.logger.Error("Error in getting session", err)
 		return SessionPayload{}, err
 	}
 	payload := sess.Values["data"]
@@ -62,7 +58,7 @@ func (ss *SessionService) ReadSession(r *http.Request) (SessionPayload, error) {
 func (ss *SessionService) WriteSession(w http.ResponseWriter, r *http.Request, sp SessionPayload) error {
 	sess, err := session.Get(ss.sessionName, r)
 	if err != nil {
-		logrus.Error(err)
+		ss.logger.Error("Error getting session", err)
 		return err
 	}
 	sess.Options = &sessions.Options{
@@ -74,72 +70,10 @@ func (ss *SessionService) WriteSession(w http.ResponseWriter, r *http.Request, s
 	// Set user as authenticated
 	sess.Values["data"] = sp
 	if err = sess.Save(r, w); err != nil {
-		logrus.WithField("error", err).Error("Error in saving session")
+		ss.logger.Error("Error in saving session", err)
 		return err
 	}
 
 	return nil
-	// if err := ss.setCookie(w, sp); err != nil {
-	// 	logrus.WithError(err).Error("Could not write session")
-	// 	return err
-	// }
-
-	// return nil
 
 }
-
-// func (ss *SessionService) setCookie(w http.ResponseWriter, sp SessionPayload) error {
-
-// 	var buf bytes.Buffer
-
-// 	err := gob.NewEncoder(&buf).Encode(sp)
-// 	if err != nil {
-// 		logrus.Error(err)
-// 		return err
-// 	}
-
-// 	cookie := http.Cookie{
-// 		Name:     ss.sessionName,
-// 		Value:    buf.String(),
-// 		Path:     "/",
-// 		MaxAge:   ss.maxAge,
-// 		HttpOnly: true,
-// 		Secure:   true,
-// 		SameSite: http.SameSiteLaxMode,
-// 	}
-
-// 	err = cookies.WriteEncrypted(w, cookie, ss.secret)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func (ss *SessionService) getCookie(r *http.Request) (*SessionPayload, error) {
-// 	gobEncodedValue, err := cookies.ReadEncrypted(r, ss.sessionName, ss.secret)
-// 	if err != nil {
-// 		switch {
-// 		case errors.Is(err, http.ErrNoCookie):
-// 			logrus.Error("Cookie not found")
-
-// 		case errors.Is(err, cookies.ErrInvalidValue):
-// 			logrus.Error("Invalid cookie")
-
-// 		default:
-
-// 			logrus.Error("server error")
-
-// 		}
-// 		return nil, err
-// 	}
-
-// 	var sp SessionPayload
-
-// 	reader := strings.NewReader(gobEncodedValue)
-
-// 	if err := gob.NewDecoder(reader).Decode(&sp); err != nil {
-// 		logrus.Error(err)
-// 		return nil, err
-// 	}
-// 	return &sp, nil
-// }

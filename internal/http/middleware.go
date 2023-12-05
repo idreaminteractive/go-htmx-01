@@ -4,10 +4,11 @@
 package http
 
 import (
+	"log/slog"
 	"main/internal/helpers"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
+	"github.com/go-chi/httplog/v2"
 )
 
 func (s *Server) requireAuthMiddleware(next http.Handler) http.Handler {
@@ -16,16 +17,19 @@ func (s *Server) requireAuthMiddleware(next http.Handler) http.Handler {
 		sess, err := s.services.SessionService.ReadSession(r)
 
 		if err != nil {
-			logrus.WithField("err", err).Error("Error in getting session")
+			s.logger.Error("Error in getting session", err)
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 
 		if sess.UserId == 0 {
-			logrus.Error("Not logged in")
+			s.logger.Error("Not logged in")
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
+
+		// add our user id to logging
+		httplog.LogEntrySetField(r.Context(), "user", slog.IntValue(sess.UserId))
 
 		cr := helpers.ContextSave(r, "userId", sess.UserId)
 		next.ServeHTTP(w, cr)

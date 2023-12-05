@@ -10,7 +10,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/sirupsen/logrus"
 )
 
 func (s *Server) handleLogoutGet(w http.ResponseWriter, r *http.Request) {
@@ -172,7 +171,7 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	// let's hash our password + then check and see if the user already exists (we hash first to prevent timing attacks)
 	user, err := s.services.AuthenticationService.Register(reg)
 	if err != nil {
-		logrus.Errorf("%s", err)
+		s.logger.Error("Already exists", err)
 		// actually check if it exists or not
 		formErrors = map[string]error{
 			"email": validation.NewError("", "That user already exists "),
@@ -185,7 +184,7 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// ok - return success!
-	logrus.Info("Successful registration!")
+	s.logger.Info("Successful registration!")
 	s.services.SessionService.WriteSession(w, r, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
 
 	htmx.NewResponse().Redirect("/chat").Write(w)
