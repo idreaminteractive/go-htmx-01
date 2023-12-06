@@ -3,8 +3,11 @@ package http
 import (
 	"fmt"
 	"main/internal/services"
-	"main/internal/views"
+	"main/internal/views/base"
 	"main/internal/views/dto"
+	"main/internal/views/login"
+	"main/internal/views/register"
+	"main/internal/views/root"
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
@@ -32,11 +35,11 @@ func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	body := views.Root(count)
+	body := root.Root(count)
 
 	// renderComponent(
-	base := views.Base(
-		views.BaseData{
+	base := base.Base(
+		base.BaseData{
 			Body:  body,
 			CSRF:  csrf_value,
 			Title: "Chat App",
@@ -47,21 +50,21 @@ func (s *Server) handleRootGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
-	htmx.NewResponse().RenderTempl(r.Context(), w, views.NotFoundComponent())
+	htmx.NewResponse().RenderTempl(r.Context(), w, base.NotFoundComponent())
 }
 
 func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	var user dto.UserLoginDTO
 	if err := render.Bind(r, &user); err != nil {
-		views.InternalServerError(err).Render(r.Context(), w)
+		base.InternalServerError(err).Render(r.Context(), w)
 		return
 
 	}
 	var formErrors validation.Errors
 	if err := user.Validate(); err != nil {
 		formErrors = err.(validation.Errors)
-		component := views.LoginScreen(views.LoginScreenProps{
+		component := login.LoginScreen(login.LoginScreenProps{
 			LastSubmission: user,
 			Errors:         formErrors,
 		})
@@ -78,7 +81,7 @@ func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 	results, err := s.services.AuthenticationService.Authenticate(user)
 	// auth fails
 	if err != nil {
-		component := views.LoginScreen(views.LoginScreenProps{
+		component := login.LoginScreen(login.LoginScreenProps{
 			LastSubmission: user,
 			Errors: map[string]error{
 				"email": validation.NewError("", "Invalid email or password"),
@@ -107,8 +110,8 @@ func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
 	// no errors or anything on initial bits.
 	csrf_value := csrfFromRequest(r)
 
-	component := views.LoginScreen(views.LoginScreenProps{})
-	base := views.Base(views.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
+	component := login.LoginScreen(login.LoginScreenProps{})
+	base := base.Base(base.BaseData{Body: component, CSRF: csrf_value, Title: "Login"})
 	base.Render(r.Context(), w)
 
 }
@@ -128,8 +131,8 @@ func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleRegisterGet(w http.ResponseWriter, r *http.Request) {
 	// no errors or anything on initial bits.
-	component := views.RegisterForm(views.RegisterFormData{})
-	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Register"})
+	component := register.RegisterForm(register.RegisterFormData{})
+	base := base.Base(base.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Register"})
 	htmx.NewResponse().RenderTempl(r.Context(), w, base)
 
 }
@@ -140,7 +143,7 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	var formErrors validation.Errors
 
 	if err := render.Bind(r, &reg); err != nil {
-		views.InternalServerError(err).Render(r.Context(), w)
+		base.InternalServerError(err).Render(r.Context(), w)
 		return
 
 	}
@@ -159,7 +162,7 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if formErrors.Filter() != nil {
-		component := views.RegisterForm(views.RegisterFormData{Previous: reg, Errors: formErrors})
+		component := register.RegisterForm(register.RegisterFormData{Previous: reg, Errors: formErrors})
 		htmx.NewResponse().
 			Retarget("#registerForm").
 			Reswap(htmx.SwapOuterHTML).
@@ -176,7 +179,7 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 		formErrors = map[string]error{
 			"email": validation.NewError("", "That user already exists "),
 		}
-		component := views.RegisterForm(views.RegisterFormData{Previous: reg, Errors: formErrors})
+		component := register.RegisterForm(register.RegisterFormData{Previous: reg, Errors: formErrors})
 		htmx.NewResponse().
 			Retarget("#registerForm").
 			Reswap(htmx.SwapOuterHTML).

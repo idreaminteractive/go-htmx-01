@@ -1,7 +1,6 @@
-package components
+package buttons
 
 import (
-	"fmt"
 	"main/internal/views/helpers"
 )
 
@@ -28,8 +27,8 @@ templ Button(props ButtonProps) {
  		if !helpers.IsEmptyOrWhiteSpace(props.Class) {
 			class={ props.Class }
 		}
- 		if !helpers.IsEmptyOrWhiteSpace(props.Class) {
-			type={ fmt.Sprintf("%s", props.ButtonType) }
+ 		if props.ButtonType != "" {
+			type={ string(props.ButtonType) }
 		}
 	>
 		{ children... }

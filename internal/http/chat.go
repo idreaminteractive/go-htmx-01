@@ -2,8 +2,10 @@ package http
 
 import (
 	"fmt"
-	"main/internal/views"
-	"main/internal/views/components"
+
+	base "main/internal/views/base"
+	chat "main/internal/views/chat"
+	flash "main/internal/views/components/flash"
 	"main/internal/views/dto"
 	"net/http"
 	"strconv"
@@ -74,7 +76,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	if err := message.Validate(); err != nil {
 		formErrors := err.(validation.Errors)
 		// hx return here
-		component := views.ChatMessageForm(views.ChatMessageFormProps{ActiveChatId: chatId, PreviousMessage: message.Message, Errors: formErrors})
+		component := chat.ChatMessageForm(chat.ChatMessageFormProps{ActiveChatId: chatId, PreviousMessage: message.Message, Errors: formErrors})
 		// render w/ hx
 		htmx.NewResponse().Retarget("#messageForm").Reswap(htmx.SwapOuterHTML).RenderTempl(r.Context(), w, component)
 
@@ -99,7 +101,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	}
 	s.services.SSEEventBus.Send("message-count", fmt.Sprintf("%d", count))
 
-	var currentMessages []views.ChatMessageProps
+	var currentMessages []chat.ChatMessageProps
 	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -110,7 +112,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	for _, conv := range messages {
 		if conv.Id == chatId {
 			for _, message := range conv.Messages {
-				currentMessages = append(currentMessages, views.ChatMessageProps{
+				currentMessages = append(currentMessages, chat.ChatMessageProps{
 					IsOwn:       message.UserId == userId,
 					MessageText: message.Content,
 					Handle:      message.Handle,
@@ -122,13 +124,13 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cap := views.ChatActivityProps{
+	cap := chat.ChatActivityProps{
 		ActiveChatId:    chatId,
 		CurrentMessages: currentMessages,
 	}
 	// re-render w/ new datas
 	// just render chat activity + only use base data
-	component := views.ChatActivity(cap)
+	component := chat.ChatActivity(cap)
 
 	// for this, it's not a real flash message,
 	// but an oob swap into the page to simulate it.
@@ -136,7 +138,7 @@ func (s *Server) handleChatByIdPost(w http.ResponseWriter, r *http.Request) {
 	htmx.NewResponse().
 		Retarget("#chatActivity").
 		Reswap(htmx.SwapOuterHTML).
-		RenderTempl(r.Context(), w, components.FlashWrapper(component, components.FlashProps{
+		RenderTempl(r.Context(), w, flash.FlashWrapper(component, flash.FlashProps{
 			Message: "Hi there!",
 		}))
 
@@ -157,7 +159,7 @@ func (s *Server) handleChatByIdGet(w http.ResponseWriter, r *http.Request) {
 	userId := s.getUserIdFromCTX(r)
 
 	// no matter what, i need my messages for this chat
-	var currentMessages []views.ChatMessageProps
+	var currentMessages []chat.ChatMessageProps
 	messages, err := s.services.ChatService.GetConversationsForUser(userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -167,7 +169,7 @@ func (s *Server) handleChatByIdGet(w http.ResponseWriter, r *http.Request) {
 	for _, conv := range messages {
 		if conv.Id == chatId {
 			for _, message := range conv.Messages {
-				currentMessages = append(currentMessages, views.ChatMessageProps{
+				currentMessages = append(currentMessages, chat.ChatMessageProps{
 					IsOwn:       message.UserId == userId,
 					MessageText: message.Content,
 					Handle:      message.Handle,
@@ -179,13 +181,13 @@ func (s *Server) handleChatByIdGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cap := views.ChatActivityProps{
+	cap := chat.ChatActivityProps{
 		ActiveChatId:    chatId,
 		CurrentMessages: currentMessages,
 	}
 	if htmx.IsHTMX(r) {
 		// just render chat activity + only use base data
-		component := views.ChatActivity(cap)
+		component := chat.ChatActivity(cap)
 		htmx.NewResponse().RenderTempl(r.Context(), w, component)
 		return
 	}
@@ -202,28 +204,28 @@ func (s *Server) handleChatByIdGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var possibleData []views.PossibleConversationItemProps
+	var possibleData []chat.PossibleConversationItemProps
 	for _, p := range possibles {
-		possibleData = append(possibleData, views.PossibleConversationItemProps{
+		possibleData = append(possibleData, chat.PossibleConversationItemProps{
 			Id:     int(p.ID),
 			Handle: p.Handle,
 		})
 	}
 
-	props := views.ChatScreenProps{
+	props := chat.ChatScreenProps{
 		ActiveConversations:   data,
 		PossibleConversations: possibleData,
 		ActiveChatId:          chatId,
 		CurrentMessages:       cap.CurrentMessages,
 	}
 
-	component := views.ChatScreen(props)
-	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Chatting"})
+	component := chat.ChatScreen(props)
+	base := base.Base(base.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Chatting"})
 	htmx.NewResponse().RenderTempl(r.Context(), w, base)
 
 }
 
-func (s *Server) getConversationData(userId int) ([]views.ConversationItemProps, error) {
+func (s *Server) getConversationData(userId int) ([]chat.ConversationItemProps, error) {
 
 	// ok - this is the root page, so nothing active.
 
@@ -233,7 +235,7 @@ func (s *Server) getConversationData(userId int) ([]views.ConversationItemProps,
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 
 	}
-	ActiveConversations := []views.ConversationItemProps{}
+	ActiveConversations := []chat.ConversationItemProps{}
 	for _, conversation := range data {
 		// this is bad!
 		otherUser, err := s.services.ChatService.GetOtherUserInConversation(userId, conversation.Id)
@@ -248,7 +250,7 @@ func (s *Server) getConversationData(userId int) ([]views.ConversationItemProps,
 		} else {
 			mText = "< " + firstMessage.Content
 		}
-		ActiveConversations = append(ActiveConversations, views.ConversationItemProps{
+		ActiveConversations = append(ActiveConversations, chat.ConversationItemProps{
 			Id: conversation.Id, Handle: otherUser.Handle, MessageText: mText,
 		})
 	}
@@ -271,22 +273,22 @@ func (s *Server) handleChatGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var possibleData []views.PossibleConversationItemProps
+	var possibleData []chat.PossibleConversationItemProps
 	for _, p := range possibles {
-		possibleData = append(possibleData, views.PossibleConversationItemProps{
+		possibleData = append(possibleData, chat.PossibleConversationItemProps{
 			Id:     int(p.ID),
 			Handle: p.Handle,
 		})
 	}
-	props := views.ChatScreenProps{
+	props := chat.ChatScreenProps{
 		PossibleConversations: possibleData,
 		ActiveConversations:   data,
 		ActiveChatId:          -1,
-		CurrentMessages:       []views.ChatMessageProps{},
+		CurrentMessages:       []chat.ChatMessageProps{},
 	}
 
-	component := views.ChatScreen(props)
-	base := views.Base(views.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Login"})
+	component := chat.ChatScreen(props)
+	base := base.Base(base.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Login"})
 	htmx.NewResponse().RenderTempl(r.Context(), w, base)
 
 }

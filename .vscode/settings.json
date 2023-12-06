@@ -2,5 +2,8 @@
     "tailwindCSS.includeLanguages": {
         "plaintext": "html",
         "templ": "html"
+    },
+    "files.exclude": {
+        "**/*_templ.go": true
     }
 }

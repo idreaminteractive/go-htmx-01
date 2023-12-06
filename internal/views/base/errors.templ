@@ -1,0 +1,13 @@
+package base
+
+templ NotFoundComponent() {
+	<div>404 - Not found</div>
+}
+
+templ InternalServerError(err error) {
+	<div>
+		<h2>Oh No!</h2>
+		<div>{ err.Error() }</div>
+		<div><a href="/">Home</a></div>
+	</div>
+}
