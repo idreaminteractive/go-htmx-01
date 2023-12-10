@@ -10,6 +10,7 @@ import (
 	"main/internal/services"
 	"main/internal/views/dto"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-faker/faker/v4"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -22,8 +23,8 @@ func main() {
 	}
 	ctx := context.Background()
 	queries := db.New(database)
-
-	as := services.InitAuthService(&services.ServiceLocator{}, queries)
+	logger := httplog.NewLogger("go-htmx-01", httplog.Options{})
+	as := services.InitAuthService(&services.ServiceLocator{}, queries, logger)
 
 	one, err := as.Register(dto.RegisterDTO{Handle: "Dave", Email: "dwiper@gmail.com", Password: "dave", ConfirmPassword: "dave"})
 	if err != nil {
