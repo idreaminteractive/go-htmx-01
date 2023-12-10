@@ -27,7 +27,9 @@ templ Base(data BaseData) {
 			<script type="text/javascript" src="/static/js/htmx.min.js"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
-			<script type="text/javascript" src="/static/js/hyperscript.min.js"></script>
+			<script src="https://unpkg.com/htmx.org/dist/ext/alpine-morph.js"></script>
+			// <script type="text/javascript" src="/static/js/hyperscript.min.js"></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 			<script type="text/javascript">
 				// htmx.logAll();
 		
@@ -40,20 +42,20 @@ templ Base(data BaseData) {
 			</main>
 			// include the following for that sweet hmr if we are on dev local
 			if GetCtxEnv(ctx) == "dev_local" {
+				<script> 
+				let _refreshTime = "";
+				document.body.addEventListener('htmx:sseMessage', function (evt) {
+					if(_refreshTime === "") {
+						_refreshTime = evt.detail.data
+					}	
+					if(_refreshTime  !== event.detail.data){
+						console.log("Reload yo")
+						window.location.reload()
+					}								
+				});
+				</script>
 				<div
- 					class="hidden"
- 					_="
-				set :start to ''			
-				on htmx:sseMessage 
-					// log :start
-					// log event.detail.data
-					if :start == '' 
-						set :start to event.detail.data
-					end 
-					if :start != event.detail.data
-						reload() the location of the window
-					end 						
-				"
+ 					class=""
  					hx-ext="sse"
  					sse-connect="/hmr"
  					sse-swap="message"
