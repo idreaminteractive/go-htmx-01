@@ -1,0 +1,14 @@
+package loggedin
+
+import "fmt"
+
+templ LoggedInView (currentUserId int) {
+	<div class="flex items-center justify-center h-screen bg-gradient-to-r from-black via-gray-800 to-black">
+		<div class="text-white">You are currently logged in with user id { fmt.Sprintf("%d", currentUserId) }</div>
+		<div class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8">
+			<a href="/logout" class="btn btn-ghost inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4 rounded  text-white">
+				Logout
+			</a>
+		</div>
+	</div>
+}

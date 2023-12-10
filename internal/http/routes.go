@@ -1,10 +1,8 @@
 package http
 
 import (
-	"main/internal/ws"
 	"net/http"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -28,21 +26,29 @@ func (s *Server) routes() {
 	s.router.Get("/register", s.handleRegisterGet)
 	s.router.Post("/register", s.handleRegisterPost)
 
-	// create our ws stuff
-	hub := ws.NewHub()
-	go hub.Run()
-	// this could be under a middleware too so the ws can get our user.
-	s.router.Get("/chatws", func(w http.ResponseWriter, r *http.Request) {
-		sess, err := s.services.SessionService.ReadSession(r)
+// authenticated route
+s.router.Route("/loggedin", func(r chi.Router) {
+	r.Use(s.requireAuthMiddleware)
+	r.Get("/", s.handleLoggedInGet)
 
-		if err != nil {
-			s.logger.Error("Error in getting session", err)
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return
-		}
-		spew.Dump(sess)
-		ws.ServeWs(hub, w, r)
-	})
+})
+
+
+	// create our ws stuff
+	// hub := ws.NewHub()
+	// go hub.Run()
+	// // this could be under a middleware too so the ws can get our user.
+	// s.router.Get("/chatws", func(w http.ResponseWriter, r *http.Request) {
+	// 	sess, err := s.services.SessionService.ReadSession(r)
+
+	// 	if err != nil {
+	// 		s.logger.Error("Error in getting session", err)
+	// 		http.Redirect(w, r, "/login", http.StatusFound)
+	// 		return
+	// 	}
+	// 	spew.Dump(sess)
+	// 	ws.ServeWs(hub, w, r)
+	// })
 
 	s.router.Route("/chat", func(r chi.Router) {
 		r.Use(s.requireAuthMiddleware)
@@ -54,6 +60,6 @@ func (s *Server) routes() {
 	})
 
 	// add our events endpoint for sse
-	s.router.Get("/events", s.services.SSEEventBus.ServeHTTP)
+	s.router.Get("/hmr", s.services.SSEEventBus.ServeHTTP)
 
 }

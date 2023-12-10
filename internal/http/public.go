@@ -5,6 +5,7 @@ import (
 	"main/internal/services"
 	"main/internal/views/base"
 	"main/internal/views/dto"
+	"main/internal/views/loggedin"
 	"main/internal/views/login"
 	"main/internal/views/register"
 	"main/internal/views/root"
@@ -102,7 +103,7 @@ func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Done writing session, redirecterroo")
 
 	htmx.NewResponse().
-		Redirect("/chat").Write(w)
+		Redirect("/loggedin").Write(w)
 
 }
 
@@ -190,6 +191,18 @@ func (s *Server) handleRegisterPost(w http.ResponseWriter, r *http.Request) {
 	s.logger.Info("Successful registration!")
 	s.services.SessionService.WriteSession(w, r, services.SessionPayload{UserId: int(user.ID), Email: user.Email})
 
-	htmx.NewResponse().Redirect("/chat").Write(w)
+	htmx.NewResponse().Redirect("/loggedin").Write(w)
+
+}
+
+func (s *Server) handleLoggedInGet(w http.ResponseWriter, r *http.Request) {
+	// kill session + redirect (i should not need to post anywhere)
+	// write a blank session
+	userId := s.getUserIdFromCTX(r)
+
+	component := loggedin.LoggedInView(userId)
+	base := base.Base(base.BaseData{Body: component, CSRF: csrfFromRequest(r), Title: "Register"})
+	htmx.NewResponse().
+		RenderTempl(r.Context(), w, base)
 
 }
